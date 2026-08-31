@@ -1,0 +1,779 @@
+{
+  "generatedAt": "2026-08-31T14:35:47.249Z",
+  "version": 1,
+  "sources": [
+    {
+      "id": "all",
+      "label": "Toutes"
+    },
+    {
+      "id": "schneider",
+      "label": "Schneider Electric",
+      "color": "#3db83d"
+    },
+    {
+      "id": "legrand",
+      "label": "Legrand",
+      "color": "#e05a0c"
+    },
+    {
+      "id": "hager",
+      "label": "Hager",
+      "color": "#c8000a"
+    },
+    {
+      "id": "siemens",
+      "label": "Siemens",
+      "color": "#009999"
+    },
+    {
+      "id": "rexel",
+      "label": "Rexel",
+      "color": "#0046ad"
+    },
+    {
+      "id": "atlantic",
+      "label": "Atlantic",
+      "color": "#0284c7"
+    },
+    {
+      "id": "mitsubishielectric",
+      "label": "Mitsubishi Electric",
+      "color": "#e60027"
+    },
+    {
+      "id": "daikin",
+      "label": "Daikin",
+      "color": "#005cab"
+    }
+  ],
+  "themes": [
+    "Tous",
+    "IRVE",
+    "PAC / Pompes à chaleur",
+    "Domotique / Wiser",
+    "TGBT Intelligent",
+    "Solaire PV",
+    "GTB / GTC",
+    "Efficacité énergie",
+    "PME Supervision",
+    "IoT / Réseau"
+  ],
+  "formats": [
+    "Tous",
+    "Micro-learning",
+    "Vidéo",
+    "Blended",
+    "Présentiel",
+    "Webinar"
+  ],
+  "regions": [
+    {
+      "id": "all",
+      "label": "Toute la France",
+      "ico": "🇫🇷"
+    },
+    {
+      "id": "idf",
+      "label": "Île-de-France",
+      "ico": "🗼"
+    },
+    {
+      "id": "ara",
+      "label": "Auvergne-Rhône-Alpes",
+      "ico": "🏔️"
+    },
+    {
+      "id": "occ",
+      "label": "Occitanie",
+      "ico": "☀️"
+    },
+    {
+      "id": "pdl",
+      "label": "Pays de la Loire",
+      "ico": "🌊"
+    },
+    {
+      "id": "paca",
+      "label": "PACA",
+      "ico": "🌿"
+    },
+    {
+      "id": "naq",
+      "label": "Nouvelle-Aquitaine",
+      "ico": "🍷"
+    },
+    {
+      "id": "bfc",
+      "label": "Bourgogne-Franche-Comté",
+      "ico": "🏛️"
+    },
+    {
+      "id": "hdf",
+      "label": "Hauts-de-France",
+      "ico": "🏭"
+    },
+    {
+      "id": "bre",
+      "label": "Bretagne",
+      "ico": "⚓"
+    }
+  ],
+  "courses": [
+    {
+      "id": 1,
+      "source": "schneider",
+      "sourceLabel": "Schneider Electric",
+      "sourceColor": "#3db83d",
+      "emoji": "⚡",
+      "thumbBg": "linear-gradient(135deg,#dcfce7,#bbf7d0)",
+      "title": "TGBT Intelligent — PowerTags & Smartlink",
+      "desc": "Configurer un tableau général basse tension intelligent avec capteurs PowerTags pour la supervision énergétique en tertiaire.",
+      "level": "Niv. 2",
+      "lvlBg": "var(--blue-lt)",
+      "lvlColor": "var(--blue)",
+      "duration": "3h30",
+      "format": "Blended",
+      "badges": [
+        {
+          "t": "EcoXpert",
+          "c": "cb-cert"
+        },
+        {
+          "t": "CPF",
+          "c": "cb-cpf"
+        }
+      ],
+      "themes": [
+        "TGBT Intelligent",
+        "Efficacité énergie"
+      ],
+      "regions": [
+        "idf",
+        "ara",
+        "hdf"
+      ],
+      "objectives": [
+        "Câbler et configurer PowerTags SE sur un TGBT",
+        "Paramétrer la communication Smartlink",
+        "Connecter au logiciel PME pour la supervision",
+        "Analyser les données de consommation en temps réel"
+      ]
+    },
+    {
+      "id": 2,
+      "source": "schneider",
+      "sourceLabel": "Schneider Electric",
+      "sourceColor": "#3db83d",
+      "emoji": "🏠",
+      "thumbBg": "linear-gradient(135deg,#e0f2fe,#bae6fd)",
+      "title": "Wiser Home — Domotique résidentielle complète",
+      "desc": "Maîtriser l'écosystème Wiser pour la domotique : volets, éclairage, thermostats, pilotage via app mobile.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "2h",
+      "format": "Vidéo",
+      "badges": [
+        {
+          "t": "Initiation",
+          "c": "cb-free"
+        }
+      ],
+      "themes": [
+        "Domotique / Wiser"
+      ],
+      "regions": [
+        "all"
+      ],
+      "objectives": [
+        "Architecture système Wiser",
+        "Installation et appairage des modules",
+        "Configuration scènes et automatisations",
+        "Paramétrage app client iOS/Android"
+      ]
+    },
+    {
+      "id": 3,
+      "source": "enedis",
+      "sourceLabel": "Enedis",
+      "sourceColor": "#0072bc",
+      "emoji": "☀️",
+      "thumbBg": "linear-gradient(135deg,#fef9c3,#fde68a)",
+      "title": "Installation Photovoltaïque — Certification QUALIFELEC",
+      "desc": "Formation complète dimensionnement, installation et mise en service d'une installation solaire résidentielle et tertiaire.",
+      "level": "Niv. 2",
+      "lvlBg": "var(--blue-lt)",
+      "lvlColor": "var(--blue)",
+      "duration": "5 jours",
+      "format": "Présentiel",
+      "badges": [
+        {
+          "t": "QUALIFELEC",
+          "c": "cb-cert"
+        },
+        {
+          "t": "CPF",
+          "c": "cb-cpf"
+        }
+      ],
+      "themes": [
+        "Solaire PV"
+      ],
+      "regions": [
+        "paca",
+        "occ",
+        "naq"
+      ],
+      "objectives": [
+        "Dimensionner un système PV",
+        "Maîtriser les raccordements AC/DC",
+        "Configurer onduleur et monitoring",
+        "Réaliser les démarches administratives"
+      ]
+    },
+    {
+      "id": 4,
+      "source": "legrand",
+      "sourceLabel": "Legrand",
+      "sourceColor": "#e2001a",
+      "emoji": "📺",
+      "thumbBg": "linear-gradient(135deg,#fee2e2,#fecaca)",
+      "title": "IRVE Niveau 1 — Infrastructures de recharge pour véhicules électriques (PR0902)",
+      "desc": "Formation officielle Legrand : installation et raccordement de bornes simples pour maisons individuelles, conforme au décret n°2017-26. Éligible CPF, dossier de qualification IRVE (Qualifelec/AFNOR/Qualit'EnR).",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "1 jour (7h)",
+      "format": "Présentiel",
+      "badges": [
+        {
+          "t": "Qualifiant",
+          "c": "cb-cert"
+        },
+        {
+          "t": "CPF",
+          "c": "cb-cpf"
+        }
+      ],
+      "themes": [
+        "IRVE"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://www.legrand.fr/pro/formations/recharge-pour-vehicules-electriques-efficacite-energetique/formation-legrand-infrastructures-de-recharge-pour-vehicules-electriques-irve-niveau-1-902",
+      "objectives": [
+        "Normes NF C 15-100 IRVE",
+        "Choix de la bonne borne",
+        "Câblage et sécurisation",
+        "Mise en service et test"
+      ]
+    },
+    {
+      "id": 10,
+      "source": "schneider",
+      "sourceLabel": "Schneider Electric",
+      "sourceColor": "#3db83d",
+      "emoji": "🔋",
+      "thumbBg": "linear-gradient(135deg,#dcfce7,#bbf7d0)",
+      "title": "IRVEP1 — Infrastructure de bornes de charge résidentielles",
+      "desc": "Formation officielle Schneider Electric (Training Institute) : installation de bornes non communicantes, certification IRVE et EV/ZE Ready 1.4 niveau P1.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "1 jour (7h)",
+      "format": "Présentiel",
+      "badges": [
+        {
+          "t": "EcoXpert",
+          "c": "cb-cert"
+        },
+        {
+          "t": "CPF",
+          "c": "cb-cpf"
+        }
+      ],
+      "themes": [
+        "IRVE"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://www.se.com/fr/fr/work/services/formation/vehicules-electriques/irvep1.html",
+      "objectives": [
+        "Réglementation décret n°2017-26",
+        "Installation borne non communicante",
+        "Obtenir la certification IRVE",
+        "Préparer le niveau P2 (IRVEQ2)"
+      ]
+    },
+    {
+      "id": 11,
+      "source": "hager",
+      "sourceLabel": "Hager",
+      "sourceColor": "#c8000a",
+      "emoji": "🔌",
+      "thumbBg": "linear-gradient(135deg,#ffe4e6,#fecdd3)",
+      "title": "Installation borne de recharge résidentielle (EMO035)",
+      "desc": "Formation officielle Hager : fixation, raccordement et configuration d'une borne witty, constitution du dossier de qualification IRVE.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "1 jour",
+      "format": "Présentiel",
+      "badges": [
+        {
+          "t": "Qualifiant",
+          "c": "cb-cert"
+        }
+      ],
+      "themes": [
+        "IRVE"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://hager.com/fr/formation/e-mobilite/emo035",
+      "objectives": [
+        "Enjeux du marché IRVE",
+        "Normes et architectures de bornes",
+        "Fixation et raccordement borne witty",
+        "Mise en service et configuration"
+      ]
+    },
+    {
+      "id": 12,
+      "source": "atlantic",
+      "sourceLabel": "Atlantic",
+      "sourceColor": "#0284c7",
+      "emoji": "🌡️",
+      "thumbBg": "linear-gradient(135deg,#e0f2fe,#bae6fd)",
+      "title": "Catalogue Formations PAC Air/Eau — Atlantic Home 2025",
+      "desc": "Catalogue officiel Atlantic : sélection, dimensionnement, installation et préparation à l'examen QualiPAC pour pompes à chaleur air/eau.",
+      "level": "Niv. 1-3",
+      "lvlBg": "var(--blue-lt)",
+      "lvlColor": "var(--blue)",
+      "duration": "Variable",
+      "format": "Présentiel",
+      "badges": [
+        {
+          "t": "QualiPAC",
+          "c": "cb-cert"
+        },
+        {
+          "t": "Qualiopi",
+          "c": "cb-cert"
+        }
+      ],
+      "themes": [
+        "PAC / Pompes à chaleur"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://documents.atlantic-pros.fr/Catalogue-Formations-Atlantic-Home-2025/index.html",
+      "objectives": [
+        "Sélection et dimensionnement PAC air/eau",
+        "Installation et mise en service",
+        "Préparation examen QualiPAC",
+        "Dépannage et maintenance"
+      ]
+    },
+    {
+      "id": 13,
+      "source": "mitsubishielectric",
+      "sourceLabel": "Mitsubishi Electric",
+      "sourceColor": "#e60027",
+      "emoji": "❄️",
+      "thumbBg": "linear-gradient(135deg,#fee2e2,#fecaca)",
+      "title": "Formations Installateur PAC ECODAN (Air/Eau) & Série M (Air/Air)",
+      "desc": "Catalogue officiel Mitsubishi Electric : des fondamentaux thermodynamiques à la certification Quali'PAC, installation et maintenance des gammes ECODAN et Série M.",
+      "level": "Niv. 1-3",
+      "lvlBg": "var(--blue-lt)",
+      "lvlColor": "var(--blue)",
+      "duration": "Variable",
+      "format": "Blended",
+      "badges": [
+        {
+          "t": "Quali'PAC",
+          "c": "cb-cert"
+        },
+        {
+          "t": "Qualiopi",
+          "c": "cb-cert"
+        }
+      ],
+      "themes": [
+        "PAC / Pompes à chaleur"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://confort.mitsubishielectric.fr/professionnel/services/la-formation-mitsubishi-electric",
+      "objectives": [
+        "Fondamentaux thermodynamiques et hydrauliques",
+        "Installation ECODAN et Série M",
+        "Certification Quali'PAC / RGE",
+        "Maintenance et SAV"
+      ]
+    },
+    {
+      "id": 14,
+      "source": "daikin",
+      "sourceLabel": "Daikin",
+      "sourceColor": "#005cab",
+      "emoji": "🌀",
+      "thumbBg": "linear-gradient(135deg,#e0f2fe,#bae6fd)",
+      "title": "Institut de Formation Daikin — Installateurs PAC",
+      "desc": "Portail officiel Daikin pour les installateurs : modules de formation et programme Partenaire certifié Stand By Me pour les pompes à chaleur.",
+      "level": "Niv. 1-3",
+      "lvlBg": "var(--blue-lt)",
+      "lvlColor": "var(--blue)",
+      "duration": "Variable",
+      "format": "Blended",
+      "badges": [
+        {
+          "t": "Certifié",
+          "c": "cb-cert"
+        }
+      ],
+      "themes": [
+        "PAC / Pompes à chaleur"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://www.daikin.fr/fr_fr/installateurs.html",
+      "objectives": [
+        "Inscription aux modules de formation",
+        "Programme Partenaire certifié",
+        "Installation et mise en service PAC",
+        "Accès aux outils installateurs Daikin"
+      ]
+    },
+    {
+      "id": 15,
+      "source": "schneider",
+      "sourceLabel": "Schneider Electric",
+      "sourceColor": "#3db83d",
+      "emoji": "🎥",
+      "thumbBg": "linear-gradient(135deg,#dcfce7,#bbf7d0)",
+      "title": "Tuto vidéo — Installer la borne EVlink Home",
+      "desc": "Playlist officielle Schneider Electric : étapes pas à pas pour installer la borne de recharge résidentielle EVlink Home.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "~10 min",
+      "format": "Vidéo",
+      "badges": [
+        {
+          "t": "Gratuit",
+          "c": "cb-free"
+        }
+      ],
+      "themes": [
+        "IRVE"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://www.youtube.com/watch?v=HhiCM03DDWs",
+      "objectives": [
+        "Déballage et fixation de la borne",
+        "Raccordement électrique",
+        "Mise en service",
+        "Vérifications de sécurité"
+      ]
+    },
+    {
+      "id": 16,
+      "source": "schneider",
+      "sourceLabel": "Schneider Electric",
+      "sourceColor": "#3db83d",
+      "emoji": "🎥",
+      "thumbBg": "linear-gradient(135deg,#dcfce7,#bbf7d0)",
+      "title": "Tuto vidéo — Installer la borne EVlink Pro AC (tertiaire)",
+      "desc": "Playlist officielle Schneider Electric : installation de la borne EVlink Pro AC pour applications tertiaires.",
+      "level": "Niv. 2",
+      "lvlBg": "var(--blue-lt)",
+      "lvlColor": "var(--blue)",
+      "duration": "~12 min",
+      "format": "Vidéo",
+      "badges": [
+        {
+          "t": "Gratuit",
+          "c": "cb-free"
+        }
+      ],
+      "themes": [
+        "IRVE"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://www.youtube.com/watch?v=VodE9VnBgdQ",
+      "objectives": [
+        "Spécificités d'une installation tertiaire",
+        "Raccordement et câblage",
+        "Configuration de la supervision",
+        "Mise en service et tests"
+      ]
+    },
+    {
+      "id": 17,
+      "source": "legrand",
+      "sourceLabel": "Legrand",
+      "sourceColor": "#e2001a",
+      "emoji": "🎥",
+      "thumbBg": "linear-gradient(135deg,#fee2e2,#fecaca)",
+      "title": "Tuto vidéo — Installer la borne Green'Up Home monophasée",
+      "desc": "Playlist officielle Legrand \"Tutoriels Green'Up\" : installation de la borne de recharge résidentielle Green'Up Home.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "~8 min",
+      "format": "Vidéo",
+      "badges": [
+        {
+          "t": "Gratuit",
+          "c": "cb-free"
+        }
+      ],
+      "themes": [
+        "IRVE"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://www.youtube.com/watch?v=-ptYJQ0fKAY",
+      "objectives": [
+        "Présentation du matériel Green'Up Home",
+        "Câblage monophasé",
+        "Fixation murale",
+        "Mise en service"
+      ]
+    },
+    {
+      "id": 18,
+      "source": "hager",
+      "sourceLabel": "Hager",
+      "sourceColor": "#c8000a",
+      "emoji": "🎥",
+      "thumbBg": "linear-gradient(135deg,#ffe4e6,#fecdd3)",
+      "title": "Tuto vidéo — Première connexion app Hager Charge (witty one)",
+      "desc": "Playlist officielle Hager \"Tutoriels witty\" : appairage de l'application Hager Charge avec la borne witty one.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "~6 min",
+      "format": "Vidéo",
+      "badges": [
+        {
+          "t": "Gratuit",
+          "c": "cb-free"
+        }
+      ],
+      "themes": [
+        "IRVE"
+      ],
+      "regions": [
+        "all"
+      ],
+      "url": "https://www.youtube.com/watch?v=gWjvhjQBnTs",
+      "objectives": [
+        "Téléchargement et installation de l'app",
+        "Appairage avec la borne witty one",
+        "Paramètres de base",
+        "Suivi de la recharge"
+      ]
+    },
+    {
+      "id": 5,
+      "source": "hager",
+      "sourceLabel": "Hager",
+      "sourceColor": "#c8000a",
+      "emoji": "🔌",
+      "thumbBg": "linear-gradient(135deg,#ffe4e6,#fecdd3)",
+      "title": "domovea — GTB résidentielle KNX",
+      "desc": "Intégrer le système domotique domovea dans une installation existante. Configuration KNX et protocoles de communication.",
+      "level": "Niv. 3",
+      "lvlBg": "var(--orange-lt)",
+      "lvlColor": "var(--orange)",
+      "duration": "6h",
+      "format": "Blended",
+      "badges": [
+        {
+          "t": "KNX",
+          "c": "cb-xp"
+        },
+        {
+          "t": "Expert",
+          "c": "cb-xp"
+        }
+      ],
+      "themes": [
+        "GTB / GTC",
+        "Domotique / Wiser"
+      ],
+      "regions": [
+        "idf",
+        "ara",
+        "bfc"
+      ],
+      "objectives": [
+        "Programmer un bus KNX",
+        "Intégrer domovea",
+        "Créer interfaces supervision",
+        "Diagnostiquer pannes réseau"
+      ]
+    },
+    {
+      "id": 6,
+      "source": "schneider",
+      "sourceLabel": "Schneider Electric",
+      "sourceColor": "#3db83d",
+      "emoji": "📊",
+      "thumbBg": "linear-gradient(135deg,#dcfce7,#a7f3d0)",
+      "title": "Power Monitoring Expert — Cas Boulangerie",
+      "desc": "Déployer PME pour surveiller et optimiser la consommation d'une boulangerie avec TGBT intelligent.",
+      "level": "Niv. 2",
+      "lvlBg": "var(--blue-lt)",
+      "lvlColor": "var(--blue)",
+      "duration": "4h",
+      "format": "Blended",
+      "badges": [
+        {
+          "t": "EcoXpert",
+          "c": "cb-cert"
+        },
+        {
+          "t": "CPF",
+          "c": "cb-cpf"
+        }
+      ],
+      "themes": [
+        "PME Supervision",
+        "TGBT Intelligent",
+        "Efficacité énergie"
+      ],
+      "regions": [
+        "idf",
+        "pdl",
+        "hdf"
+      ],
+      "objectives": [
+        "Déployer EcoStruxure Power Monitoring",
+        "Créer tableaux de bord énergie",
+        "Paramétrer alertes de surconsommation",
+        "Générer rapports réglementaires"
+      ]
+    },
+    {
+      "id": 7,
+      "source": "legrand",
+      "sourceLabel": "Legrand",
+      "sourceColor": "#e05a0c",
+      "emoji": "🌐",
+      "thumbBg": "linear-gradient(135deg,#fff7ed,#fed7aa)",
+      "title": "Gamme connectée Legrand — IoT Habitat & Tertiaire",
+      "desc": "Prises, interrupteurs et systèmes connectés Legrand pour l'habitat et le tertiaire.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "1h30",
+      "format": "Vidéo",
+      "badges": [
+        {
+          "t": "Initiation",
+          "c": "cb-free"
+        }
+      ],
+      "themes": [
+        "IoT / Réseau",
+        "Domotique / Wiser"
+      ],
+      "regions": [
+        "all"
+      ],
+      "objectives": [
+        "Présentation gamme connectée",
+        "Installation et config sans fil",
+        "Intégration assistants vocaux",
+        "Programmation de scénarios"
+      ]
+    },
+    {
+      "id": 8,
+      "source": "siemens",
+      "sourceLabel": "Siemens",
+      "sourceColor": "#009999",
+      "emoji": "🏢",
+      "thumbBg": "linear-gradient(135deg,#cffafe,#a5f3fc)",
+      "title": "Desigo CC — Gestion technique du bâtiment",
+      "desc": "Maîtriser le système GTB Desigo CC pour la gestion centralisée CVC, éclairage et sécurité tertiaire.",
+      "level": "Niv. 3",
+      "lvlBg": "var(--orange-lt)",
+      "lvlColor": "var(--orange)",
+      "duration": "3 jours",
+      "format": "Présentiel",
+      "badges": [
+        {
+          "t": "Certification",
+          "c": "cb-cert"
+        },
+        {
+          "t": "Expert",
+          "c": "cb-xp"
+        }
+      ],
+      "themes": [
+        "GTB / GTC"
+      ],
+      "regions": [
+        "idf",
+        "ara",
+        "bre"
+      ],
+      "objectives": [
+        "Architecture Desigo CC",
+        "Intégration BACnet/Modbus",
+        "Programmation automates",
+        "Maintenance et diagnostics distants"
+      ]
+    },
+    {
+      "id": 9,
+      "source": "hager",
+      "sourceLabel": "Hager",
+      "sourceColor": "#e55e0a",
+      "emoji": "🎓",
+      "thumbBg": "linear-gradient(135deg,#f3f4f6,#e5e7eb)",
+      "title": "Micro-learning : lire un schéma électrique tertiaire",
+      "desc": "10 minutes pour (re)maîtriser la lecture des plans et schémas de tableaux électriques.",
+      "level": "Niv. 1",
+      "lvlBg": "var(--green-lt)",
+      "lvlColor": "var(--green)",
+      "duration": "10 min",
+      "format": "Micro-learning",
+      "badges": [
+        {
+          "t": "Gratuit",
+          "c": "cb-free"
+        }
+      ],
+      "themes": [
+        "TGBT Intelligent"
+      ],
+      "regions": [
+        "all"
+      ],
+      "objectives": [
+        "Symboles normalisés",
+        "Lecture schéma unifilaire",
+        "Identification des protections",
+        "Conformité NF C 15-100"
+      ]
+    }
+  ]
+}
