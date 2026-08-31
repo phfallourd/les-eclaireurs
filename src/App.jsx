@@ -110,7 +110,8 @@ a.skip-link:focus{top:1rem;}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,86,219,.45);}
 .btn-secondary{background:white;color:var(--text);border:1.5px solid var(--border2);
   padding:13px 28px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;
-  font-weight:600;font-size:.95rem;cursor:pointer;transition:all .25s;}
+  font-weight:600;font-size:.95rem;cursor:pointer;transition:all .25s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;}
 .btn-secondary:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-lt);}
 
 /* hero photo */
@@ -794,7 +795,7 @@ const LOGOS = {
   edf:      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/EDF_logo.svg/160px-EDF_logo.svg.png",
   rte:      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/RTE_logo.svg/240px-RTE_logo.svg.png",
 };
-const FALLBACK = {schneider:"Schneider Electric",legrand:"Legrand",hager:"Hager",siemens:"Siemens",rexel:"Rexel",sonepar:"Sonepar",ademe:"ADEME",enedis:"Enedis",edf:"EDF",rte:"RTE"};
+const FALLBACK = {schneider:"Schneider Electric",legrand:"Legrand",hager:"Hager",siemens:"Siemens",rexel:"Rexel",sonepar:"Sonepar",ademe:"ADEME",enedis:"Enedis",edf:"EDF",rte:"RTE",atlantic:"Atlantic",mitsubishielectric:"Mitsubishi Electric",daikin:"Daikin"};
 
 function Logo({id, h=22, grey=false}) {
   const [err,setErr]=useState(false);
@@ -810,8 +811,11 @@ const SOURCES=[
   {id:"hager",label:"Hager",color:"#c8000a"},
   {id:"siemens",label:"Siemens",color:"#009999"},
   {id:"rexel",label:"Rexel",color:"#0046ad"},
+  {id:"atlantic",label:"Atlantic",color:"#0284c7"},
+  {id:"mitsubishielectric",label:"Mitsubishi Electric",color:"#e60027"},
+  {id:"daikin",label:"Daikin",color:"#005cab"},
 ];
-const THEMES=["Tous","IRVE","Domotique / Wiser","TGBT Intelligent","Solaire PV","GTB / GTC","Efficacité énergie","PME Supervision","IoT / Réseau"];
+const THEMES=["Tous","IRVE","PAC / Pompes à chaleur","Domotique / Wiser","TGBT Intelligent","Solaire PV","GTB / GTC","Efficacité énergie","PME Supervision","IoT / Réseau"];
 const FORMATS=["Tous","Micro-learning","Vidéo","Blended","Présentiel","Webinar"];
 const REGIONS=[
   {id:"all",label:"Toute la France",ico:"🇫🇷"},
@@ -853,12 +857,58 @@ const COURSES=[
     objectives:["Dimensionner un système PV","Maîtriser les raccordements AC/DC","Configurer onduleur et monitoring","Réaliser les démarches administratives"]},
   {id:4,source:"legrand",sourceLabel:"Legrand",sourceColor:"#e2001a",
     emoji:"📺",thumbBg:"linear-gradient(135deg,#fee2e2,#fecaca)",
-    title:"IRVE — Borne de recharge : installation pas à pas",
-    desc:"Tutoriel communautaire pour installer une borne de recharge VE en maison individuelle et collectif.",
+    title:"IRVE Niveau 1 — Infrastructures de recharge pour véhicules électriques (PR0902)",
+    desc:"Formation officielle Legrand : installation et raccordement de bornes simples pour maisons individuelles, conforme au décret n°2017-26. Éligible CPF, dossier de qualification IRVE (Qualifelec/AFNOR/Qualit'EnR).",
     level:"Niv. 1",lvlBg:"var(--green-lt)",lvlColor:"var(--green)",
-    duration:"45 min",format:"Micro-learning",badges:[{t:"Gratuit",c:"cb-free"}],
+    duration:"1 jour (7h)",format:"Présentiel",badges:[{t:"Qualifiant",c:"cb-cert"},{t:"CPF",c:"cb-cpf"}],
     themes:["IRVE"],regions:["all"],
+    url:"https://www.legrand.fr/pro/formations/recharge-pour-vehicules-electriques-efficacite-energetique/formation-legrand-infrastructures-de-recharge-pour-vehicules-electriques-irve-niveau-1-902",
     objectives:["Normes NF C 15-100 IRVE","Choix de la bonne borne","Câblage et sécurisation","Mise en service et test"]},
+  {id:10,source:"schneider",sourceLabel:"Schneider Electric",sourceColor:"#3db83d",
+    emoji:"🔋",thumbBg:"linear-gradient(135deg,#dcfce7,#bbf7d0)",
+    title:"IRVEP1 — Infrastructure de bornes de charge résidentielles",
+    desc:"Formation officielle Schneider Electric (Training Institute) : installation de bornes non communicantes, certification IRVE et EV/ZE Ready 1.4 niveau P1.",
+    level:"Niv. 1",lvlBg:"var(--green-lt)",lvlColor:"var(--green)",
+    duration:"1 jour (7h)",format:"Présentiel",badges:[{t:"EcoXpert",c:"cb-cert"},{t:"CPF",c:"cb-cpf"}],
+    themes:["IRVE"],regions:["all"],
+    url:"https://www.se.com/fr/fr/work/services/formation/vehicules-electriques/irvep1.html",
+    objectives:["Réglementation décret n°2017-26","Installation borne non communicante","Obtenir la certification IRVE","Préparer le niveau P2 (IRVEQ2)"]},
+  {id:11,source:"hager",sourceLabel:"Hager",sourceColor:"#c8000a",
+    emoji:"🔌",thumbBg:"linear-gradient(135deg,#ffe4e6,#fecdd3)",
+    title:"Installation borne de recharge résidentielle (EMO035)",
+    desc:"Formation officielle Hager : fixation, raccordement et configuration d'une borne witty, constitution du dossier de qualification IRVE.",
+    level:"Niv. 1",lvlBg:"var(--green-lt)",lvlColor:"var(--green)",
+    duration:"1 jour",format:"Présentiel",badges:[{t:"Qualifiant",c:"cb-cert"}],
+    themes:["IRVE"],regions:["all"],
+    url:"https://hager.com/fr/formation/e-mobilite/emo035",
+    objectives:["Enjeux du marché IRVE","Normes et architectures de bornes","Fixation et raccordement borne witty","Mise en service et configuration"]},
+  {id:12,source:"atlantic",sourceLabel:"Atlantic",sourceColor:"#0284c7",
+    emoji:"🌡️",thumbBg:"linear-gradient(135deg,#e0f2fe,#bae6fd)",
+    title:"Catalogue Formations PAC Air/Eau — Atlantic Home 2025",
+    desc:"Catalogue officiel Atlantic : sélection, dimensionnement, installation et préparation à l'examen QualiPAC pour pompes à chaleur air/eau.",
+    level:"Niv. 1-3",lvlBg:"var(--blue-lt)",lvlColor:"var(--blue)",
+    duration:"Variable",format:"Présentiel",badges:[{t:"QualiPAC",c:"cb-cert"},{t:"Qualiopi",c:"cb-cert"}],
+    themes:["PAC / Pompes à chaleur"],regions:["all"],
+    url:"https://documents.atlantic-pros.fr/Catalogue-Formations-Atlantic-Home-2025/index.html",
+    objectives:["Sélection et dimensionnement PAC air/eau","Installation et mise en service","Préparation examen QualiPAC","Dépannage et maintenance"]},
+  {id:13,source:"mitsubishielectric",sourceLabel:"Mitsubishi Electric",sourceColor:"#e60027",
+    emoji:"❄️",thumbBg:"linear-gradient(135deg,#fee2e2,#fecaca)",
+    title:"Formations Installateur PAC ECODAN (Air/Eau) & Série M (Air/Air)",
+    desc:"Catalogue officiel Mitsubishi Electric : des fondamentaux thermodynamiques à la certification Quali'PAC, installation et maintenance des gammes ECODAN et Série M.",
+    level:"Niv. 1-3",lvlBg:"var(--blue-lt)",lvlColor:"var(--blue)",
+    duration:"Variable",format:"Blended",badges:[{t:"Quali'PAC",c:"cb-cert"},{t:"Qualiopi",c:"cb-cert"}],
+    themes:["PAC / Pompes à chaleur"],regions:["all"],
+    url:"https://confort.mitsubishielectric.fr/professionnel/services/la-formation-mitsubishi-electric",
+    objectives:["Fondamentaux thermodynamiques et hydrauliques","Installation ECODAN et Série M","Certification Quali'PAC / RGE","Maintenance et SAV"]},
+  {id:14,source:"daikin",sourceLabel:"Daikin",sourceColor:"#005cab",
+    emoji:"🌀",thumbBg:"linear-gradient(135deg,#e0f2fe,#bae6fd)",
+    title:"Institut de Formation Daikin — Installateurs PAC",
+    desc:"Portail officiel Daikin pour les installateurs : modules de formation et programme Partenaire certifié Stand By Me pour les pompes à chaleur.",
+    level:"Niv. 1-3",lvlBg:"var(--blue-lt)",lvlColor:"var(--blue)",
+    duration:"Variable",format:"Blended",badges:[{t:"Certifié",c:"cb-cert"}],
+    themes:["PAC / Pompes à chaleur"],regions:["all"],
+    url:"https://www.daikin.fr/fr_fr/installateurs.html",
+    objectives:["Inscription aux modules de formation","Programme Partenaire certifié","Installation et mise en service PAC","Accès aux outils installateurs Daikin"]},
   {id:5,source:"hager",sourceLabel:"Hager",sourceColor:"#c8000a",
     emoji:"🔌",thumbBg:"linear-gradient(135deg,#ffe4e6,#fecdd3)",
     title:"domovea — GTB résidentielle KNX",
@@ -1055,7 +1105,15 @@ function CourseModal({course,onClose,onAdd}){
             <button className="btn-primary" style={{flex:1,justifyContent:"center"}} onClick={()=>{onAdd(course);onClose();}}>
               + Ajouter au parcours
             </button>
-            <button className="btn-secondary" onClick={onClose}>Accéder à la formation →</button>
+            {course.url?(
+              <a className="btn-secondary" href={course.url} target="_blank" rel="noopener noreferrer">
+                Accéder à la formation →
+              </a>
+            ):(
+              <button className="btn-secondary" disabled title="Lien officiel à venir" style={{opacity:.5,cursor:"not-allowed"}}>
+                Lien à venir
+              </button>
+            )}
           </div>
         </div>
       </div>
