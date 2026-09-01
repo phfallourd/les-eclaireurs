@@ -52,14 +52,63 @@ npm run sync-catalog
 
 | Écran | État |
 |---|---|
-| Catalogue (recherche, filtres, fiches, liens officiels) | fonctionnel |
+| Assistant terrain (texte + micro) | fonctionnel — moteur local, agent IA optionnel |
+| Tutos vidéo (recherche, filtres, liens) | fonctionnel |
+| Formations qualifiantes | fonctionnel |
+| Mes formations (enregistrement) | fonctionnel — **local à l'appareil** |
 | Hotline fabricants | fonctionnel (numéros réels, `tel:`) |
-| Assistant terrain | aperçu — nécessite un backend |
 | Réseau de pairs | aperçu — nécessite comptes et modération |
 
-Les deux derniers écrans sont volontairement présentés comme non actifs plutôt
-que simulés : en test terrain, un faux assistant ou de faux profils fausseraient
-les retours des utilisateurs.
+### L'assistant terrain
+
+Deux niveaux, l'application bascule automatiquement de l'un à l'autre :
+
+**Par défaut — moteur de correspondance local.** Il tourne dans le téléphone,
+sans réseau ni clé d'API. Il reconnaît le vocabulaire de chantier (« borne
+22 kW », « PAC air/eau », « witty ») et oriente vers les vidéos et formations
+correspondantes. Ce n'est pas un modèle de langage : il ne rédige pas de
+réponse, il aiguille. C'est déjà l'essentiel du besoin d'orientation.
+
+**En option — agent conversationnel.** `api/assistant.js` est une fonction
+serverless prête à déployer. Tant que la variable d'environnement
+`ANTHROPIC_API_KEY` n'est pas définie, elle renvoie 501 et l'app reste sur son
+moteur local. Pour l'activer :
+
+1. Vercel → projet PWA → Settings → Environment Variables
+2. Ajouter `ANTHROPIC_API_KEY`
+3. Redéployer
+
+La clé reste côté serveur et n'est jamais exposée au navigateur. Attention au
+coût : chaque question consomme des jetons. Prévoir une limitation par appareil
+avant toute ouverture large.
+
+Le prompt système encadre les réponses : pas de procédure d'intervention sous
+tension, rappel de l'habilitation requise, rappel de l'obligation de
+qualification IRVE au-delà de 3,7 kW, et renvoi vers la hotline ou un bureau de
+contrôle quand la question sort du champ de la formation.
+
+### La dictée vocale
+
+Utilise l'API Web Speech du navigateur. Le bouton micro n'apparaît que si le
+navigateur la supporte — correct sur Chrome/Android et Safari iOS récent,
+absent sur Firefox. La reconnaissance transite par les serveurs du navigateur
+(Google ou Apple selon la plateforme), pas par nos services.
+
+### Le profil et « Mes formations »
+
+**Limite importante :** le profil et les formations enregistrées sont stockés
+sur le téléphone uniquement. Ils ne sont **pas** synchronisés avec la version
+web : les deux applications sont servies depuis des domaines différents, et
+deux origines distinctes ne peuvent pas partager le stockage du navigateur.
+
+Une vraie synchronisation demandera :
+
+1. une authentification (comptes utilisateurs),
+2. une base de données côté serveur,
+3. le remplacement du stockage local par des appels API.
+
+En attendant, le bouton « Partager ma sélection » permet à l'électricien de
+s'envoyer sa liste (partage natif iOS/Android, ou copie dans le presse-papier).
 
 ## Déploiement
 

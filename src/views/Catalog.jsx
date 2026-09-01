@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useCatalog } from "../data/useCatalog";
 import CourseSheet from "../components/CourseSheet";
 import BackRow from "../components/BackRow";
+import SaveButton from "../components/SaveButton";
 
 const BRAND_COLORS = {
   schneider: "#3db83d",
@@ -15,33 +16,45 @@ const BRAND_COLORS = {
   enedis: "#0072bc",
 };
 
-/** Regroupe les thèmes du catalogue en pastilles courtes, lisibles sur mobile. */
+const SHORT_FORMATS = ["Vidéo", "Micro-learning"];
+const isShort = (c) => SHORT_FORMATS.includes(c.format);
+
+/** Pastilles courtes : les libellés complets débordent sur un écran de téléphone. */
 function shortTheme(theme) {
-  if (theme === "PAC / Pompes à chaleur") return "PAC";
-  if (theme === "Domotique / Wiser") return "Domotique";
-  if (theme === "TGBT Intelligent") return "TGBT";
-  if (theme === "GTB / GTC") return "GTB";
-  if (theme === "Solaire PV") return "Solaire";
-  if (theme === "Efficacité énergie") return "Énergie";
-  if (theme === "PME Supervision") return "Supervision";
-  if (theme === "IoT / Réseau") return "IoT";
-  return theme;
+  const map = {
+    "PAC / Pompes à chaleur": "PAC",
+    "Domotique / Wiser": "Domotique",
+    "TGBT Intelligent": "TGBT",
+    "GTB / GTC": "GTB",
+    "Solaire PV": "Solaire",
+    "Efficacité énergie": "Énergie",
+    "PME Supervision": "Supervision",
+    "IoT / Réseau": "IoT",
+  };
+  return map[theme] || theme;
 }
 
-export default function Catalog({ onBack }) {
+/**
+ * @param {"videos"|"training"} initialMode  Vue d'entrée selon la tuile cliquée.
+ */
+export default function Catalog({ onBack, initialMode = "videos" }) {
   const { courses, themes, status, generatedAt } = useCatalog();
+  const [mode, setMode] = useState(initialMode);
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState("Tous");
   const [selected, setSelected] = useState(null);
 
+  const pool = useMemo(
+    () => courses.filter((c) => (mode === "videos" ? isShort(c) : !isShort(c))),
+    [courses, mode]
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return courses.filter((c) => {
-      const matchTheme =
-        theme === "Tous" || (c.themes || []).includes(theme);
-      if (!matchTheme) return false;
+    return pool.filter((c) => {
+      if (theme !== "Tous" && !(c.themes || []).includes(theme)) return false;
       if (!q) return true;
-      const haystack = [
+      return [
         c.title,
         c.desc,
         c.sourceLabel,
@@ -51,27 +64,60 @@ export default function Catalog({ onBack }) {
         ...(c.objectives || []),
       ]
         .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
+        .toLowerCase()
+        .includes(q);
     });
-  }, [courses, query, theme]);
+  }, [pool, query, theme]);
 
-  const withLink = filtered.filter((c) => c.url).length;
+  // Un thème sans contenu dans le mode courant ne doit pas être proposé :
+  // cliquer dessus ne renverrait rien, ce qui donne l'impression d'un bug.
+  const usableThemes = useMemo(
+    () =>
+      themes.filter(
+        (t) => t === "Tous" || pool.some((c) => (c.themes || []).includes(t))
+      ),
+    [themes, pool]
+  );
+
+  const switchMode = (next) => {
+    setMode(next);
+    setTheme("Tous"); // le filtre précédent peut ne pas exister dans l'autre mode
+  };
 
   return (
     <div className="view active">
       <div className="view-pad">
-        <BackRow onBack={onBack} title="Formations & tutos">
-          <span className="stat-chip">{courses.length} référencées</span>
+        <BackRow
+          onBack={onBack}
+          title={mode === "videos" ? "Tutos vidéo" : "Formations"}
+        >
+          <span className="stat-chip">{pool.length}</span>
         </BackRow>
+
+        <div className="segmented">
+          <button
+            className={mode === "videos" ? "seg on" : "seg"}
+            onClick={() => switchMode("videos")}
+          >
+            Vidéos courtes
+          </button>
+          <button
+            className={mode === "training" ? "seg on" : "seg"}
+            onClick={() => switchMode("training")}
+          >
+            Formations
+          </button>
+        </div>
 
         <div className="input-row" style={{ marginBottom: 10 }}>
           <input
             className="ec-input"
-            placeholder="Référence, marque, type d'install…"
+            placeholder={
+              mode === "videos" ? "Produit, marque…" : "Certification, marque…"
+            }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Rechercher une formation"
+            aria-label="Rechercher"
           />
           {query && (
             <button
@@ -86,7 +132,7 @@ export default function Catalog({ onBack }) {
         </div>
 
         <div className="pills">
-          {themes.map((t) => (
+          {usableThemes.map((t) => (
             <div
               key={t}
               className={`pill ${theme === t ? "on" : ""}`}
@@ -103,11 +149,11 @@ export default function Catalog({ onBack }) {
         <div className="result-line">
           {filtered.length === 0
             ? "Aucun résultat"
-            : `${filtered.length} formation${filtered.length > 1 ? "s" : ""}`}
+            : `${filtered.length} résultat${filtered.length > 1 ? "s" : ""}`}
           {filtered.length > 0 && (
             <span className="result-sub">
               {" · "}
-              {withLink} avec lien officiel
+              {filtered.filter((c) => c.url).length} avec lien officiel
             </span>
           )}
         </div>
@@ -145,14 +191,7 @@ export default function Catalog({ onBack }) {
         )}
 
         {filtered.map((c) => (
-          <div
-            key={c.id}
-            className="tuto-card"
-            onClick={() => setSelected(c)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && setSelected(c)}
-          >
+          <div key={c.id} className="tuto-card" onClick={() => setSelected(c)}>
             <div className="tuto-thumb" style={{ background: c.thumbBg }}>
               <span className="tt-emoji">{c.emoji}</span>
             </div>
@@ -172,7 +211,13 @@ export default function Catalog({ onBack }) {
                 {c.url && <span className="link-dot" title="Lien officiel" />}
               </div>
             </div>
-            <div style={{ fontSize: 12, color: "var(--text3)" }}>›</div>
+            {/* On n'enregistre que les formations : une vidéo se regarde tout
+                de suite, elle n'a pas vocation à rentrer dans un parcours. */}
+            {mode === "training" ? (
+              <SaveButton courseId={c.id} />
+            ) : (
+              <div style={{ fontSize: 12, color: "var(--text3)" }}>›</div>
+            )}
           </div>
         ))}
 

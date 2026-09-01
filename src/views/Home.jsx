@@ -1,37 +1,185 @@
+import { useEffect, useRef, useState } from "react";
 import { useCatalog } from "../data/useCatalog";
+import { useProfile } from "../data/profile";
+import { isVoiceSupported, startDictation } from "../lib/speech";
 
-export default function Home({ go }) {
+export default function Home({ go, onAsk }) {
   const { courses } = useCatalog();
-  const withLink = courses.filter((c) => c.url).length;
+  const profile = useProfile();
+  const [input, setInput] = useState("");
+  const [listening, setListening] = useState(false);
+  const stopRef = useRef(null);
+  const voiceOk = isVoiceSupported();
+
+  useEffect(() => () => stopRef.current?.(), []);
+
+  const submit = (text) => {
+    const q = (text ?? input).trim();
+    if (!q) return;
+    onAsk(q);
+  };
+
+  const toggleVoice = () => {
+    if (listening) {
+      stopRef.current?.();
+      setListening(false);
+      return;
+    }
+    setListening(true);
+    stopRef.current = startDictation(
+      (text, isFinal) => {
+        setInput(text);
+        if (isFinal) {
+          setListening(false);
+          submit(text);
+        }
+      },
+      () => setListening(false)
+    );
+  };
+
+  const videoCount = courses.filter((c) =>
+    ["Vidéo", "Micro-learning"].includes(c.format)
+  ).length;
+  const trainingCount = courses.length - videoCount;
 
   return (
     <div className="view active">
       <div className="home-pad">
-        <div className="hero-card">
-          <div className="hero-title">Trouve la bonne formation</div>
-          <div className="hero-sub">
-            Catalogue multi-marques : IRVE, pompes à chaleur, domotique, TGBT.
+        {/* ── Zone de dialogue : entrée principale de l'application ── */}
+        <div className="agent-card">
+          <div className="agent-header">
+            <div className="agent-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="3" stroke="#fff" strokeWidth="2" />
+                <path
+                  d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
+                  stroke="#fff"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <div>
+              <div className="agent-label">
+                {profile.name ? `Bonjour ${profile.name.split(" ")[0]}` : "Assistant terrain"}
+              </div>
+              <div className="agent-sub">
+                Quel produit dois-tu installer aujourd'hui ?
+              </div>
+            </div>
           </div>
-          <button className="hero-cta" onClick={() => go("catalog")}>
-            Parcourir le catalogue
-          </button>
-          <div className="hero-meta">
-            {courses.length} formations référencées · {withLink} avec accès
-            direct
+
+          <div className="input-row">
+            <input
+              className="ec-input"
+              placeholder="Ex : borne 22 kW en copro, PAC air/eau…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+              aria-label="Décrire ton besoin"
+            />
+            {voiceOk && (
+              <button
+                className={`mic-btn ${listening ? "rec" : ""}`}
+                onClick={toggleVoice}
+                aria-label={listening ? "Arrêter la dictée" : "Dicter"}
+              >
+                <svg viewBox="0 0 24 24" fill="#fff">
+                  <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+                  <path
+                    d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v3M8 22h8"
+                    stroke="#fff"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
+              </button>
+            )}
+            <button
+              className="send-btn"
+              onClick={() => submit()}
+              disabled={!input.trim()}
+              aria-label="Envoyer"
+            >
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div className="agent-hint">
+            {listening ? (
+              <>
+                <span className="rec-dot" /> À l'écoute…
+              </>
+            ) : voiceOk ? (
+              <>
+                Tape ta question ou appuie sur le <b>micro</b>
+              </>
+            ) : (
+              <>Décris ton chantier en langage courant</>
+            )}
           </div>
         </div>
 
         <div className="section-title">Accès rapide</div>
         <div className="grid2">
-          <div className="action-card blue" onClick={() => go("catalog")}>
+          <div className="action-card blue" onClick={() => go("videos")}>
             <div className="ac-icon">
               <svg viewBox="0 0 24 24" fill="#2563eb">
                 <polygon points="5,3 19,12 5,21" />
               </svg>
             </div>
-            <div className="ac-title">Formations & tutos</div>
-            <div className="ac-sub">{courses.length} référencées</div>
-            <span className="ac-badge badge-blue">Multi-marques</span>
+            <div className="ac-title">Tutos vidéo</div>
+            <div className="ac-sub">{videoCount} vidéos courtes</div>
+            <span className="ac-badge badge-blue">Sur le chantier</span>
+          </div>
+
+          <div className="action-card violet" onClick={() => go("catalog")}>
+            <div className="ac-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#7c3aed"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+            </div>
+            <div className="ac-title">Formations</div>
+            <div className="ac-sub">{trainingCount} qualifiantes</div>
+            <span className="ac-badge badge-violet">CPF / OPCO</span>
+          </div>
+
+          <div className="action-card green" onClick={() => go("saved")}>
+            <div className="ac-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#16a34a"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+            </div>
+            <div className="ac-title">Mes formations</div>
+            <div className="ac-sub">
+              {profile.saved.length === 0
+                ? "Rien d'enregistré"
+                : `${profile.saved.length} enregistrée${profile.saved.length > 1 ? "s" : ""}`}
+            </div>
+            <span className="ac-badge badge-green">Sur cet appareil</span>
           </div>
 
           <div className="action-card orange" onClick={() => go("hotline")}>
@@ -47,43 +195,8 @@ export default function Home({ go }) {
               </svg>
             </div>
             <div className="ac-title">Hotline fabricant</div>
-            <div className="ac-sub">Support technique direct</div>
-            <span className="ac-badge badge-orange">Numéros réels</span>
-          </div>
-
-          <div className="action-card violet" onClick={() => go("community")}>
-            <div className="ac-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#7c3aed"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
-              </svg>
-            </div>
-            <div className="ac-title">Réseau de pairs</div>
-            <div className="ac-sub">Entraide entre électriciens</div>
-            <span className="ac-badge badge-demo">Aperçu</span>
-          </div>
-
-          <div className="action-card green" onClick={() => go("assistant")}>
-            <div className="ac-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#16a34a"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <circle cx="12" cy="12" r="3" />
-                <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
-              </svg>
-            </div>
-            <div className="ac-title">Assistant terrain</div>
-            <div className="ac-sub">Orientation pédagogique</div>
-            <span className="ac-badge badge-demo">Aperçu</span>
+            <div className="ac-sub">Support technique</div>
+            <span className="ac-badge badge-orange">Appel direct</span>
           </div>
         </div>
 

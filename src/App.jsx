@@ -4,8 +4,18 @@ import Catalog from "./views/Catalog";
 import Assistant from "./views/Assistant";
 import Community from "./views/Community";
 import Hotline from "./views/Hotline";
+import Saved from "./views/Saved";
+import ProfileBar from "./components/ProfileBar";
 
-const SCREENS = ["home", "catalog", "assistant", "community", "hotline"];
+const SCREENS = [
+  "home",
+  "assistant",
+  "videos",
+  "catalog",
+  "saved",
+  "community",
+  "hotline",
+];
 
 const NAV = [
   {
@@ -29,8 +39,23 @@ const NAV = [
     ),
   },
   {
-    id: "catalog",
-    label: "Formations",
+    id: "assistant",
+    label: "Assistant",
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+        <path
+          d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+  },
+  {
+    id: "videos",
+    label: "Tutos",
     icon: (
       <polygon
         points="5,3 19,12 5,21"
@@ -42,11 +67,11 @@ const NAV = [
     ),
   },
   {
-    id: "community",
-    label: "Pairs",
+    id: "saved",
+    label: "Mes formations",
     icon: (
       <path
-        d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
+        d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -75,12 +100,24 @@ function initialScreen() {
 
 export default function App() {
   const [screen, setScreen] = useState(initialScreen);
+  // Question posée depuis l'accueil. L'identifiant garantit qu'une même
+  // question reposée deux fois de suite relance bien une recherche.
+  const [request, setRequest] = useState({ text: "", id: 0 });
 
   const go = useCallback((next) => {
+    // Arriver sur l'assistant par la barre de navigation doit ouvrir un écran
+    // vierge, pas rejouer la dernière question posée depuis l'accueil.
+    if (next === "assistant") setRequest({ text: "", id: Date.now() });
     setScreen(next);
     // Historique : le bouton retour du téléphone revient à l'écran précédent
     // au lieu de quitter l'application.
     window.history.pushState({ screen: next }, "");
+  }, []);
+
+  const askAssistant = useCallback((question) => {
+    setRequest({ text: question, id: Date.now() });
+    setScreen("assistant");
+    window.history.pushState({ screen: "assistant" }, "");
   }, []);
 
   useEffect(() => {
@@ -105,10 +142,24 @@ export default function App() {
         </div>
       </div>
 
+      <ProfileBar />
+
       <div className="screen">
-        {screen === "home" && <Home go={go} />}
-        {screen === "catalog" && <Catalog onBack={goHome} />}
-        {screen === "assistant" && <Assistant onBack={goHome} go={go} />}
+        {screen === "home" && <Home go={go} onAsk={askAssistant} />}
+        {screen === "assistant" && (
+          <Assistant
+            onBack={goHome}
+            initialQuery={request.text}
+            key={request.id}
+          />
+        )}
+        {screen === "videos" && (
+          <Catalog onBack={goHome} initialMode="videos" key="videos" />
+        )}
+        {screen === "catalog" && (
+          <Catalog onBack={goHome} initialMode="training" key="training" />
+        )}
+        {screen === "saved" && <Saved onBack={goHome} go={go} />}
         {screen === "community" && <Community onBack={goHome} />}
         {screen === "hotline" && <Hotline onBack={goHome} />}
       </div>
