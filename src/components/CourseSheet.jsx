@@ -1,13 +1,6 @@
 import { useEffect } from "react";
-import SaveButton from "./SaveButton";
-
-const SHORT_FORMATS = ["Vidéo", "Micro-learning"];
 
 export default function CourseSheet({ course, onClose }) {
-  // Les vidéos courtes se regardent immédiatement : les enregistrer dans un
-  // parcours n'aurait pas de sens.
-  const savable = !SHORT_FORMATS.includes(course.format);
-
   // Fermeture au bouton retour Android / échap, réflexe attendu sur mobile.
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -78,7 +71,6 @@ export default function CourseSheet({ course, onClose }) {
               Lien officiel à venir
             </div>
           )}
-          {savable ? <SaveButton courseId={course.id} /> : null}
           <button className="sheet-close" onClick={onClose}>
             Fermer
           </button>

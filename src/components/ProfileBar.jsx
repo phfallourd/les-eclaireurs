@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  useProfile,
-  setIdentity,
-  activityLabel,
-  initials,
-  SPECIALTIES,
-} from "../data/profile";
+import { useProfile, setIdentity, initials, SPECIALTIES } from "../data/profile";
 
 export default function ProfileBar() {
   const profile = useProfile();
@@ -32,9 +26,7 @@ export default function ProfileBar() {
         <span className="pb-avatar">{initials(profile.name)}</span>
         <span className="pb-text">
           <span className="pb-name">{displayName}</span>
-          <span className="pb-status">
-            {profile.specialty} · {activityLabel(profile.saved.length)}
-          </span>
+          <span className="pb-status">{profile.specialty}</span>
         </span>
         <span className="pb-edit">Modifier</span>
       </button>

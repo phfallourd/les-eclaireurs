@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useCatalog } from "../data/useCatalog";
 import CourseSheet from "../components/CourseSheet";
 import BackRow from "../components/BackRow";
-import SaveButton from "../components/SaveButton";
 
 const BRAND_COLORS = {
   schneider: "#3db83d",
@@ -18,6 +17,34 @@ const BRAND_COLORS = {
 
 const SHORT_FORMATS = ["Vidéo", "Micro-learning"];
 const isShort = (c) => SHORT_FORMATS.includes(c.format);
+
+/**
+ * Une vidéo disposant d'un lien s'ouvre directement, sans fiche intermédiaire :
+ * sur un chantier, c'est un clic de trop. Les formations longues gardent leur
+ * fiche, où durée, niveau et prérequis comptent avant de s'engager.
+ */
+const isDirect = (c) => isShort(c) && Boolean(c.url);
+
+/** Rend la carte cliquable en lien ou en bouton selon la destination. */
+function CardWrapper({ course, onOpen, children }) {
+  if (isDirect(course)) {
+    return (
+      <a
+        className="tuto-card"
+        href={course.url}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    );
+  }
+  return (
+    <div className="tuto-card" onClick={onOpen}>
+      {children}
+    </div>
+  );
+}
 
 /** Pastilles courtes : les libellés complets débordent sur un écran de téléphone. */
 function shortTheme(theme) {
@@ -191,7 +218,7 @@ export default function Catalog({ onBack, initialMode = "videos" }) {
         )}
 
         {filtered.map((c) => (
-          <div key={c.id} className="tuto-card" onClick={() => setSelected(c)}>
+          <CardWrapper key={c.id} course={c} onOpen={() => setSelected(c)}>
             <div className="tuto-thumb" style={{ background: c.thumbBg }}>
               <span className="tt-emoji">{c.emoji}</span>
             </div>
@@ -211,14 +238,10 @@ export default function Catalog({ onBack, initialMode = "videos" }) {
                 {c.url && <span className="link-dot" title="Lien officiel" />}
               </div>
             </div>
-            {/* On n'enregistre que les formations : une vidéo se regarde tout
-                de suite, elle n'a pas vocation à rentrer dans un parcours. */}
-            {mode === "training" ? (
-              <SaveButton courseId={c.id} />
-            ) : (
-              <div style={{ fontSize: 12, color: "var(--text3)" }}>›</div>
-            )}
-          </div>
+            <div style={{ fontSize: 12, color: "var(--text3)" }}>
+              {isDirect(c) ? "↗" : "›"}
+            </div>
+          </CardWrapper>
         ))}
 
         {generatedAt && filtered.length > 0 && (

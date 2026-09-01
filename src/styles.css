@@ -898,7 +898,11 @@ body {
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
-  padding: 7px 0 calc(env(safe-area-inset-bottom, 0px) + 7px);
+  padding: 6px 0 calc(env(safe-area-inset-bottom, 0px) + 6px);
+  /* Au-dessus du contenu : la barre de saisie collante de l'assistant
+     recouvrait les boutons et interceptait les appuis. */
+  position: relative;
+  z-index: 20;
 }
 
 .ni {
@@ -909,11 +913,19 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   color: var(--text3);
   cursor: pointer;
-  padding: 4px 0;
+  /* 44px : cible tactile minimale recommandée, l'ancienne était trop basse */
+  min-height: 44px;
+  padding: 4px 2px;
   transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ni:active {
+  opacity: 0.6;
 }
 
 .ni svg {
@@ -1284,7 +1296,10 @@ body {
   bottom: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px);
+  /* Pas de safe-area ici : la barre de navigation, juste en dessous,
+     s'en charge déjà. La cumuler poussait la saisie hors de l'écran. */
+  padding: 10px 16px;
+  z-index: 10;
 }
 
 .listening-hint,
@@ -1401,10 +1416,194 @@ body {
   cursor: pointer;
 }
 
-/* La barre de navigation compte désormais 5 entrées : resserrer les libellés. */
 .ni span {
-  font-size: 8.5px;
+  font-size: 9.5px;
   text-align: center;
   line-height: 1.15;
-  padding: 0 2px;
+}
+
+/* ─────────── TROIS ACCÈS PROPOSÉS APRÈS UNE RÉPONSE ─────────── */
+.next-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.next-btn {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px 6px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-height: 62px;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.next-btn:active {
+  transform: scale(0.97);
+}
+
+.na-blue {
+  border-color: var(--blue-mid);
+}
+.na-blue .na-emoji {
+  color: var(--blue);
+}
+.na-violet {
+  border-color: #ddd0ff;
+}
+.na-orange {
+  border-color: #fed7aa;
+}
+
+.na-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.na-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ─────────── RÉSEAU DE PAIRS ─────────── */
+.demo-banner {
+  background: var(--amber-light);
+  border: 1px dashed #fcd34d;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  border-radius: 9px;
+  padding: 9px 12px;
+  margin-bottom: 4px;
+}
+
+.peer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 12px;
+  margin-bottom: 9px;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  box-shadow: var(--shadow);
+}
+
+.peer-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--blue));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.peer-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--green);
+  border: 2px solid var(--surface);
+}
+
+.peer-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.peer-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.peer-spec {
+  font-size: 11.5px;
+  color: var(--blue);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.peer-meta {
+  font-size: 10.5px;
+  color: var(--text2);
+  margin-top: 3px;
+}
+
+.peer-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.peer-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+
+.peer-btn {
+  flex-shrink: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text3);
+  cursor: not-allowed;
+}
+
+.thread-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px 13px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+}
+
+.thread-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.thread-meta {
+  font-size: 10.5px;
+  color: var(--text2);
+  margin-top: 5px;
+}
+
+/* Les cartes de formation peuvent désormais être des liens (vidéos). */
+a.tuto-card {
+  text-decoration: none;
+  color: inherit;
 }

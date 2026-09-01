@@ -4,7 +4,6 @@ import Catalog from "./views/Catalog";
 import Assistant from "./views/Assistant";
 import Community from "./views/Community";
 import Hotline from "./views/Hotline";
-import Saved from "./views/Saved";
 import ProfileBar from "./components/ProfileBar";
 
 const SCREENS = [
@@ -12,7 +11,6 @@ const SCREENS = [
   "assistant",
   "videos",
   "catalog",
-  "saved",
   "community",
   "hotline",
 ];
@@ -39,21 +37,6 @@ const NAV = [
     ),
   },
   {
-    id: "assistant",
-    label: "Assistant",
-    icon: (
-      <>
-        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-        <path
-          d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </>
-    ),
-  },
-  {
     id: "videos",
     label: "Tutos",
     icon: (
@@ -67,11 +50,11 @@ const NAV = [
     ),
   },
   {
-    id: "saved",
-    label: "Mes formations",
+    id: "community",
+    label: "Pairs",
     icon: (
       <path
-        d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
+        d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -149,6 +132,7 @@ export default function App() {
         {screen === "assistant" && (
           <Assistant
             onBack={goHome}
+            go={go}
             initialQuery={request.text}
             key={request.id}
           />
@@ -159,7 +143,6 @@ export default function App() {
         {screen === "catalog" && (
           <Catalog onBack={goHome} initialMode="training" key="training" />
         )}
-        {screen === "saved" && <Saved onBack={goHome} go={go} />}
         {screen === "community" && <Community onBack={goHome} />}
         {screen === "hotline" && <Hotline onBack={goHome} />}
       </div>

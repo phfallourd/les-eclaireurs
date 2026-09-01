@@ -41,7 +41,6 @@ export default function Home({ go, onAsk }) {
   const videoCount = courses.filter((c) =>
     ["Vidéo", "Micro-learning"].includes(c.format)
   ).length;
-  const trainingCount = courses.length - videoCount;
 
   return (
     <div className="view active">
@@ -143,7 +142,7 @@ export default function Home({ go, onAsk }) {
             <span className="ac-badge badge-blue">Sur le chantier</span>
           </div>
 
-          <div className="action-card violet" onClick={() => go("catalog")}>
+          <div className="action-card violet" onClick={() => go("community")}>
             <div className="ac-icon">
               <svg
                 viewBox="0 0 24 24"
@@ -152,34 +151,12 @@ export default function Home({ go, onAsk }) {
                 strokeWidth="2"
                 strokeLinecap="round"
               >
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
               </svg>
             </div>
-            <div className="ac-title">Formations</div>
-            <div className="ac-sub">{trainingCount} qualifiantes</div>
-            <span className="ac-badge badge-violet">CPF / OPCO</span>
-          </div>
-
-          <div className="action-card green" onClick={() => go("saved")}>
-            <div className="ac-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#16a34a"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-              </svg>
-            </div>
-            <div className="ac-title">Mes formations</div>
-            <div className="ac-sub">
-              {profile.saved.length === 0
-                ? "Rien d'enregistré"
-                : `${profile.saved.length} enregistrée${profile.saved.length > 1 ? "s" : ""}`}
-            </div>
-            <span className="ac-badge badge-green">Sur cet appareil</span>
+            <div className="ac-title">Réseau de pairs</div>
+            <div className="ac-sub">Entraide entre électriciens</div>
+            <span className="ac-badge badge-demo">Démo</span>
           </div>
 
           <div className="action-card orange" onClick={() => go("hotline")}>

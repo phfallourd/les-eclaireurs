@@ -4,7 +4,6 @@ import { matchCourses, DOMAIN_LABELS } from "../lib/matchCourses";
 import { isVoiceSupported, startDictation } from "../lib/speech";
 import BackRow from "../components/BackRow";
 import CourseSheet from "../components/CourseSheet";
-import SaveButton from "../components/SaveButton";
 
 const SUGGESTIONS = [
   "Borne 22 kW en copropriété",
@@ -33,7 +32,7 @@ async function askRemoteAssistant(question, candidates) {
   }
 }
 
-export default function Assistant({ onBack, initialQuery = "" }) {
+export default function Assistant({ onBack, go, initialQuery = "" }) {
   const { courses } = useCatalog();
   const [input, setInput] = useState("");
   const [exchanges, setExchanges] = useState([]);
@@ -104,15 +103,10 @@ export default function Assistant({ onBack, initialQuery = "" }) {
           ask(text);
         }
       },
-      (reason) => {
+      (reason, message) => {
         setListening(false);
-        if (reason === "not-allowed") {
-          setVoiceError("Accès au micro refusé. Autorise-le dans les réglages.");
-        } else if (reason === "no-speech") {
-          setVoiceError("Rien entendu. Réessaie plus près du micro.");
-        } else if (reason === "unsupported") {
-          setVoiceError("La dictée n'est pas disponible sur ce navigateur.");
-        }
+        // "done" et "aborted" sont des fins normales, pas des erreurs.
+        if (reason !== "done" && message) setVoiceError(message);
       }
     );
   };
@@ -190,15 +184,34 @@ export default function Assistant({ onBack, initialQuery = "" }) {
                 <>
                   <div className="bot-section">Pour aller plus loin</div>
                   {e.training.map((c) => (
-                    <ResultRow
-                      key={c.id}
-                      course={c}
-                      onOpen={() => setSelected(c)}
-                      savable
-                    />
+                    <ResultRow key={c.id} course={c} onOpen={() => setSelected(c)} />
                   ))}
                 </>
               )}
+
+              {/* Trois portes de sortie : se former, demander à un pair,
+                  ou appeler le fabricant si le problème est produit. */}
+              <div className="bot-section">Et maintenant</div>
+              <div className="next-actions">
+                <button className="next-btn na-blue" onClick={() => go("videos")}>
+                  <span className="na-emoji">▶</span>
+                  <span className="na-label">Tutos vidéo</span>
+                </button>
+                <button
+                  className="next-btn na-violet"
+                  onClick={() => go("community")}
+                >
+                  <span className="na-emoji">👷</span>
+                  <span className="na-label">Demander à un pair</span>
+                </button>
+                <button
+                  className="next-btn na-orange"
+                  onClick={() => go("hotline")}
+                >
+                  <span className="na-emoji">📞</span>
+                  <span className="na-label">Hotline fabricant</span>
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -274,19 +287,46 @@ export default function Assistant({ onBack, initialQuery = "" }) {
   );
 }
 
-function ResultRow({ course, onOpen, savable = false }) {
+const SHORT_FORMATS = ["Vidéo", "Micro-learning"];
+
+/**
+ * Une vidéo s'ouvre directement : sur un chantier, une boîte de dialogue
+ * intermédiaire est un clic de trop. Les formations longues gardent leur
+ * fiche, où l'on a besoin de connaître durée, niveau et prérequis.
+ */
+function ResultRow({ course, onOpen }) {
+  const isVideo = SHORT_FORMATS.includes(course.format);
+  const openDirect = isVideo && course.url;
+
+  const content = (
+    <>
+      <span className="result-emoji">{openDirect ? "▶" : course.emoji}</span>
+      <span className="result-text">
+        <span className="result-title">{course.title}</span>
+        <span className="result-meta">
+          {course.sourceLabel} · {course.duration}
+          {openDirect ? " · ouvre la vidéo" : ""}
+        </span>
+      </span>
+    </>
+  );
+
   return (
     <div className="result-row">
-      <button className="result-main" onClick={onOpen}>
-        <span className="result-emoji">{course.emoji}</span>
-        <span className="result-text">
-          <span className="result-title">{course.title}</span>
-          <span className="result-meta">
-            {course.sourceLabel} · {course.duration}
-          </span>
-        </span>
-      </button>
-      {savable && <SaveButton courseId={course.id} />}
+      {openDirect ? (
+        <a
+          className="result-main"
+          href={course.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {content}
+        </a>
+      ) : (
+        <button className="result-main" onClick={onOpen}>
+          {content}
+        </button>
+      )}
     </div>
   );
 }
