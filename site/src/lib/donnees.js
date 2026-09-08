@@ -1,42 +1,32 @@
-import { pg } from './supabase'
+import { pg, SUPABASE_URL, SUPABASE_CLE } from './supabase'
+import * as CATALOG from '../data/catalog.js'
 import * as SECOURS from './secours'
 
 /**
  * Couche de données du site.
  *
- * `D` est rempli une fois, avant le premier rendu (voir main.jsx), puis lu
- * par les composants exactement comme les anciennes constantes.
- * Si Supabase est injoignable, on retombe sur les données de secours :
- * une démonstration ne doit jamais afficher une page vide.
+ * `D` est rempli une fois, avant le premier rendu (voir main.jsx), puis lu par
+ * les composants exactement comme les anciennes constantes.
+ *
+ * Le catalogue vient de la fonction SQL `catalogue_json()`, qui renvoie le même
+ * document que `data/catalog.js` — c'est la source unique partagée avec la PWA.
+ * Si Supabase est injoignable, on retombe sur les fichiers locaux : une
+ * démonstration ne doit jamais afficher une page vide.
  */
 export const D = {
-  sources: SECOURS.SOURCES,
-  themes: SECOURS.THEMES,
-  formats: SECOURS.FORMATS,
-  regions: SECOURS.REGIONS,
-  courses: SECOURS.COURSES,
+  catalogue: {
+    SOURCES: CATALOG.SOURCES,
+    THEMES: CATALOG.THEMES,
+    FORMATS: CATALOG.FORMATS,
+    REGIONS: CATALOG.REGIONS,
+    COURSES: CATALOG.COURSES,
+  },
   parcours: SECOURS.PARCOURS,
   financement: SECOURS.FINANCEMENT,
   events: SECOURS.EVENTS,
   forumCats: SECOURS.FORUM_CATS,
   forumPosts: SECOURS.FORUM_POSTS,
-  origine: 'secours',
-}
-
-/* ── Correspondances de présentation ── */
-
-const NIVEAU_STYLE = {
-  debutant: { lvlBg: 'var(--green-lt)', lvlColor: 'var(--green)' },
-  intermediaire: { lvlBg: 'var(--blue-lt)', lvlColor: 'var(--blue)' },
-  avance: { lvlBg: 'var(--orange-lt)', lvlColor: 'var(--orange)' },
-  expert: { lvlBg: 'var(--violet-lt)', lvlColor: 'var(--violet)' },
-}
-
-const NIVEAU_LIBELLE = {
-  debutant: 'Niv. 1',
-  intermediaire: 'Niv. 2',
-  avance: 'Niv. 3',
-  expert: 'Niv. 4',
+  origine: 'local',
 }
 
 const PARCOURS_ICON_BG = {
@@ -61,66 +51,22 @@ export function tempsRelatif(iso) {
 
 /* ── Chargement ── */
 
+/** Le catalogue complet en une seule requête, au format exact de data/catalog.js. */
 async function chargerCatalogue() {
-  const data = await pg('formations', {
-    select:
-      'id,titre,resume,emoji,couleur_fond,niveau,niveau_libelle,duree_libelle,format,badges,' +
-      'objectifs,certifiante,eligible_cpf,prix_eur,url_source,' +
-      'organisations(slug,nom,couleur),formation_themes(themes(libelle)),' +
-      'formation_regions(region_code)',
-    statut: 'eq.publiee',
-    emoji: 'not.is.null',
+  const reponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/catalogue_json`, {
+    headers: { apikey: SUPABASE_CLE, Authorization: `Bearer ${SUPABASE_CLE}` },
   })
-
-  return (data ?? []).map((f) => {
-    const style = NIVEAU_STYLE[f.niveau] ?? NIVEAU_STYLE.debutant
-    return {
-      id: f.id,
-      source: f.organisations?.slug ?? '',
-      sourceLabel: f.organisations?.nom ?? '',
-      sourceColor: f.organisations?.couleur ?? '#64748b',
-      emoji: f.emoji,
-      thumbBg: f.couleur_fond,
-      title: f.titre,
-      desc: f.resume,
-      level: f.niveau_libelle ?? NIVEAU_LIBELLE[f.niveau],
-      lvlBg: style.lvlBg,
-      lvlColor: style.lvlColor,
-      duration: f.duree_libelle,
-      format: f.format,
-      badges: f.badges ?? [],
-      themes: (f.formation_themes ?? []).map((t) => t.themes?.libelle).filter(Boolean),
-      regions: (f.formation_regions ?? []).map((r) => r.region_code),
-      objectives: f.objectifs ?? [],
-    }
-  })
-}
-
-async function chargerReferentiels() {
-  const [sources, themes, regions, financements] = await Promise.all([
-    pg('organisations', {
-      select: 'slug,nom,couleur',
-      type: 'in.(fabricant,institution)',
-      order: 'nom',
-    }),
-    pg('themes', { select: 'libelle,ordre', order: 'ordre' }),
-    pg('regions_fr', { select: 'code,libelle,icone,ordre', order: 'ordre' }),
-    pg('financements', { select: 'icone,titre,description,montant,ordre', order: 'ordre' }),
-  ])
-
+  if (!reponse.ok) throw new Error(`catalogue : ${reponse.status}`)
+  const doc = await reponse.json()
+  if (!Array.isArray(doc.courses) || doc.courses.length === 0) {
+    throw new Error('catalogue vide')
+  }
   return {
-    sources: [
-      { id: 'all', label: 'Toutes' },
-      ...sources.map((o) => ({ id: o.slug, label: o.nom, color: o.couleur })),
-    ],
-    themes: ['Tous', ...themes.map((t) => t.libelle)],
-    regions: regions.map((r) => ({ id: r.code, label: r.libelle, ico: r.icone })),
-    financement: financements.map((f) => ({
-      icon: f.icone,
-      title: f.titre,
-      desc: f.description,
-      amount: f.montant,
-    })),
+    SOURCES: doc.sources,
+    THEMES: doc.themes,
+    FORMATS: doc.formats,
+    REGIONS: doc.regions,
+    COURSES: doc.courses,
   }
 }
 
@@ -131,7 +77,6 @@ async function chargerParcours() {
     numero: 'not.is.null',
     order: 'numero',
   })
-
   return (data ?? []).map((p) => ({
     num: p.numero,
     icon: p.icone,
@@ -145,13 +90,25 @@ async function chargerParcours() {
   }))
 }
 
+async function chargerFinancement() {
+  const data = await pg('financements', {
+    select: 'icone,titre,description,montant,ordre',
+    order: 'ordre',
+  })
+  return (data ?? []).map((f) => ({
+    icon: f.icone,
+    title: f.titre,
+    desc: f.description,
+    amount: f.montant,
+  }))
+}
+
 async function chargerEvenements() {
   const data = await pg('evenements', {
     select: '*',
     statut: 'eq.publiee',
     order: 'date_evenement',
   })
-
   return (data ?? []).map((e) => ({
     id: e.id,
     orga: e.organisateur,
@@ -243,32 +200,36 @@ async function chargerForum() {
   return { categories, posts }
 }
 
-/** Charge tout en parallèle. Ne rejette jamais : bascule sur les données de secours. */
+/**
+ * Charge tout en parallèle. Ne rejette jamais.
+ * Le catalogue et le reste échouent indépendamment : une panne sur le forum
+ * ne prive pas le site de son catalogue à jour.
+ */
 export async function chargerDonnees() {
-  try {
-    const [catalogue, referentiels, parcours, events, forum] = await Promise.all([
-      chargerCatalogue(),
-      chargerReferentiels(),
-      chargerParcours(),
-      chargerEvenements(),
-      chargerForum(),
-    ])
+  const [catalogue, parcours, financement, events, forum] = await Promise.allSettled([
+    chargerCatalogue(),
+    chargerParcours(),
+    chargerFinancement(),
+    chargerEvenements(),
+    chargerForum(),
+  ])
 
-    if (!catalogue.length) throw new Error('catalogue vide')
-
-    D.courses = catalogue
-    D.sources = referentiels.sources
-    D.themes = referentiels.themes
-    D.regions = referentiels.regions
-    D.financement = referentiels.financement
-    D.parcours = parcours
-    D.events = events
-    D.forumCats = forum.categories
-    D.forumPosts = forum.posts
+  if (catalogue.status === 'fulfilled') {
+    D.catalogue = catalogue.value
     D.origine = 'supabase'
-  } catch (e) {
-    console.warn('[Données] Supabase injoignable, bascule sur les données locales.', e)
-    D.origine = 'secours'
+  } else {
+    console.warn('[Données] catalogue indisponible, version locale utilisée.', catalogue.reason)
   }
+
+  if (parcours.status === 'fulfilled' && parcours.value.length) D.parcours = parcours.value
+  if (financement.status === 'fulfilled' && financement.value.length) {
+    D.financement = financement.value
+  }
+  if (events.status === 'fulfilled' && events.value.length) D.events = events.value
+  if (forum.status === 'fulfilled' && forum.value.posts.length) {
+    D.forumCats = forum.value.categories
+    D.forumPosts = forum.value.posts
+  }
+
   return D
 }

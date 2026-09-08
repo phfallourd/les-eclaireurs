@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { D } from './lib/donnees'
+import { D } from "./lib/donnees";
 
 /* ─────────── FONTS & CSS ─────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');`;
@@ -111,7 +111,8 @@ a.skip-link:focus{top:1rem;}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,86,219,.45);}
 .btn-secondary{background:white;color:var(--text);border:1.5px solid var(--border2);
   padding:13px 28px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;
-  font-weight:600;font-size:.95rem;cursor:pointer;transition:all .25s;}
+  font-weight:600;font-size:.95rem;cursor:pointer;transition:all .25s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;}
 .btn-secondary:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-lt);}
 
 /* hero photo */
@@ -795,7 +796,7 @@ const LOGOS = {
   edf:      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/EDF_logo.svg/160px-EDF_logo.svg.png",
   rte:      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/RTE_logo.svg/240px-RTE_logo.svg.png",
 };
-const FALLBACK = {schneider:"Schneider Electric",legrand:"Legrand",hager:"Hager",siemens:"Siemens",rexel:"Rexel",sonepar:"Sonepar",ademe:"ADEME",enedis:"Enedis",edf:"EDF",rte:"RTE"};
+const FALLBACK = {schneider:"Schneider Electric",legrand:"Legrand",hager:"Hager",siemens:"Siemens",rexel:"Rexel",sonepar:"Sonepar",ademe:"ADEME",enedis:"Enedis",edf:"EDF",rte:"RTE",atlantic:"Atlantic",mitsubishielectric:"Mitsubishi Electric",daikin:"Daikin"};
 
 function Logo({id, h=22, grey=false}) {
   const [err,setErr]=useState(false);
@@ -803,14 +804,9 @@ function Logo({id, h=22, grey=false}) {
   return <img src={LOGOS[id]} alt={FALLBACK[id]||id} style={{height:h,width:"auto",objectFit:"contain",filter:grey?"grayscale(1) opacity(.5)":"none"}} onError={()=>setErr(true)}/>;
 }
 
-/* ─────────── DATA ─────────── */
-/* Données chargées depuis Supabase avant le rendu (voir lib/donnees.js). */
-const SOURCES = D.sources;
-const THEMES = D.themes;
-const FORMATS = D.formats;
-const REGIONS = D.regions;
-
-const COURSES = D.courses;
+/* ─────────── DATA (source unique : src/data/catalog.js) ─────────── */
+const {SOURCES, THEMES, FORMATS, REGIONS, COURSES} = D.catalogue;
+/* Contenu chargé depuis Supabase avant le rendu (voir lib/donnees.js). */
 const PARCOURS = D.parcours;
 const FINANCEMENT = D.financement;
 
@@ -872,7 +868,15 @@ function CourseModal({course,onClose,onAdd}){
             <button className="btn-primary" style={{flex:1,justifyContent:"center"}} onClick={()=>{onAdd(course);onClose();}}>
               + Ajouter au parcours
             </button>
-            <button className="btn-secondary" onClick={onClose}>Accéder à la formation →</button>
+            {course.url?(
+              <a className="btn-secondary" href={course.url} target="_blank" rel="noopener noreferrer">
+                Accéder à la formation →
+              </a>
+            ):(
+              <button className="btn-secondary" disabled title="Lien officiel à venir" style={{opacity:.5,cursor:"not-allowed"}}>
+                Lien à venir
+              </button>
+            )}
           </div>
         </div>
       </div>
