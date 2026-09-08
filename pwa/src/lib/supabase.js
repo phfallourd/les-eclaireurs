@@ -76,17 +76,28 @@ export async function pg(table, params = {}) {
 }
 
 /** Écriture (insertion) dans une table. */
-export async function pgInsert(table, lignes, { retour = true } = {}) {
+export async function pgInsert(table, lignes, { retour = true, ignorerDoublons = false } = {}) {
+  const prefer = [
+    retour ? 'return=representation' : 'return=minimal',
+    ignorerDoublons ? 'resolution=ignore-duplicates' : null,
+  ]
+    .filter(Boolean)
+    .join(',')
   const reponse = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
-    headers: entetes({
-      'Content-Type': 'application/json',
-      Prefer: retour ? 'return=representation' : 'return=minimal',
-    }),
+    headers: entetes({ 'Content-Type': 'application/json', Prefer: prefer }),
     body: JSON.stringify(lignes),
   })
   if (!reponse.ok) throw new Error(`${table} : ${reponse.status} ${await reponse.text()}`)
   return retour ? reponse.json() : null
+}
+
+/** Suppression ciblée : pgDelete('inscriptions', { formation_id: 'eq.' + id }) */
+export async function pgDelete(table, filtres) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`)
+  for (const [cle, valeur] of Object.entries(filtres)) url.searchParams.set(cle, valeur)
+  const reponse = await fetch(url, { method: 'DELETE', headers: entetes() })
+  if (!reponse.ok) throw new Error(`${table} : ${reponse.status} ${await reponse.text()}`)
 }
 
 /** Mise à jour ciblée : pgUpdate('profils', { id: 'eq.' + uid }, { metier: 'électricien' }) */
