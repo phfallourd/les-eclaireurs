@@ -24,7 +24,8 @@ ${FONTS}
   --sh-xl:0 20px 25px -5px rgba(0,0,0,.10),0 10px 10px -5px rgba(0,0,0,.04);
   --r:12px; --rl:20px; --rf:9999px;
 }
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;}
+html{overflow-x:hidden;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;max-width:100%;}
 
 /* accessibility */
 :focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:4px;}
@@ -196,6 +197,17 @@ a.skip-link:focus{top:1rem;}
 .section-head{margin-bottom:2.5rem;}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;}
+/* Grilles responsives. Elles remplacent des grilles écrites en style inline avec un
+   nombre de colonnes figé : sur mobile, minmax(0,1fr) manquait et le contenu ne
+   pouvait pas rétrécir, d'où le débordement horizontal signalé (retour 31). */
+.rg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+.rg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+.rg3-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+.rg4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));}
+.rg-tuiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+/* Recherche mise en avant dès le héros (retour 30). */
+.hero-recherche{display:flex;gap:.6rem;margin-bottom:1.75rem;max-width:500px;}
+.ligne-liens{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1.5rem;}
 
 /* ── COURSE CARDS ── */
 .ccard{background:white;border-radius:var(--rl);border:1.5px solid var(--border);
@@ -494,6 +506,18 @@ footer{background:white;border-top:1px solid var(--border);padding:3.5rem 2rem 2
   .logos-label{width:100%;}
   .grid3{grid-template-columns:1fr 1fr;}
   .grid4{grid-template-columns:1fr 1fr;}
+  .rg2{grid-template-columns:1fr;}
+  .rg4{grid-template-columns:repeat(2,minmax(0,1fr));}
+  /* Sur mobile la recherche passe avant les chiffres, et les chiffres avant la
+     preuve sociale : on cherche une formation, on ne lit pas un tableau de bord. */
+  .hero-left{display:flex;flex-direction:column;}
+  .hero-badge{order:1;align-self:flex-start;}
+  .hero-h1{order:2;}
+  .hero-desc{order:3;}
+  .hero-recherche{order:4;max-width:none;}
+  .hero-btns{order:5;}
+  .hero-stats{order:6;margin-top:2rem;margin-bottom:0;}
+  .trust-bar{order:7;}
   .pgrid{grid-template-columns:1fr 1fr;}
   .live-inner{grid-template-columns:1fr; gap:2rem;}
   .profile-grid{grid-template-columns:1fr;}
@@ -523,6 +547,9 @@ footer{background:white;border-top:1px solid var(--border);padding:3.5rem 2rem 2
   .logo-name{font-size:1rem;}
   .hero{padding:88px 1rem 50px;}
   .hero-h1{font-size:clamp(1.7rem,8vw,2.4rem);}
+  .rg3{grid-template-columns:1fr;}
+  .hero-recherche{flex-direction:column;}
+  .hero-recherche .search-btn{width:100%;}
   .hero-stats{flex-direction:column;gap:.4rem;}
   .stat-item{border-right:none;border-bottom:1px solid var(--border);padding:.75rem 1rem;}
   .stat-item:last-child{border-bottom:none;}
@@ -1689,7 +1716,7 @@ function EventsPage({showToast}){
               <button className="modal-close" onClick={()=>setModalEvt(null)} aria-label="Fermer">×</button>
             </div>
             <div className="modal-body">
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:".75rem",marginBottom:"1.25rem"}}>
+              <div className="rg3-mini" style={{gap:".75rem",marginBottom:"1.25rem"}}>
                 {[["Date",fmtDate(modalEvt.date)],["Heure",modalEvt.time],["Durée",modalEvt.duration]].map(([k,v])=>(
                   <div key={k} className="mstat"><div className="mstat-k">{k}</div><div className="mstat-v">{v}</div></div>
                 ))}
@@ -1790,7 +1817,7 @@ export default function App(){
             <div className="logo-name">Les <span>Éclaireurs!</span></div>
           </button>
           <nav className="nav-links" aria-label="Menu principal">
-            {[["accueil","Accueil"],["formations","Formations"],["parcours","Parcours"],["forum","Communauté 💬"],["evenements","📅 Événements"],["financement","Financement"],["depot","📤 Déposer"],["about","À propos"],["profil","Mon Profil"]].map(([id,label])=>(
+            {[["formations","Formations"],["parcours","Parcours"],["financement","Financement"],["forum","Communauté"],["profil","Mon Profil"]].map(([id,label])=>(
               <button key={id} className={`nav-btn ${page===id?"active":""}`} onClick={()=>nav(id)} aria-current={page===id?"page":undefined}>{label}</button>
             ))}
           </nav>
@@ -1836,6 +1863,14 @@ export default function App(){
                   Schneider Electric, Legrand, Hager, Siemens, Rexel, Sonepar — réunis, organisés par compétences,
                   finançables via CPF et OPCO.
                 </p>
+                <form className="hero-recherche" role="search"
+                  onSubmit={e=>{e.preventDefault();nav("formations");}}>
+                  <label htmlFor="hero-search" className="sr-only">Rechercher une formation</label>
+                  <input id="hero-search" className="search-input" type="search"
+                    placeholder="Quelle formation cherchez-vous ? IRVE, PAC, GTB…"
+                    value={search} onChange={e=>setSearch(e.target.value)}/>
+                  <button className="search-btn" type="submit">Rechercher</button>
+                </form>
                 <div className="hero-stats" role="list" aria-label="Chiffres clés">
                   {[["3 352","Personnes formées"],["109+","Formations disponibles"],["142t","CO₂ évités ↓"]].map(([n,l])=>(
                     <div key={n} className="stat-item" role="listitem">
@@ -1898,7 +1933,7 @@ export default function App(){
           {/* ANCRAGE TERRITORIAL */}
           <section className="section" style={{background:"var(--bg2)"}} aria-labelledby="territoire-title">
             <div className="section-inner">
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"3rem",alignItems:"center"}}>
+              <div className="rg2" style={{gap:"3rem",alignItems:"center"}}>
 
                 {/* Gauche — argumentaire */}
                 <div>
@@ -1929,7 +1964,7 @@ export default function App(){
                 </div>
 
                 {/* Droite — carte régions interactives */}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:".75rem"}}>
+                <div className="rg-tuiles" style={{gap:".75rem"}}>
                   {REGIONS.filter(r=>r.id!=="all").map(r=>{
                     const count=COURSES.filter(c=>c.regions.includes("all")||c.regions.includes(r.id)).length;
                     return(
@@ -2329,7 +2364,7 @@ export default function App(){
                   <h2 className="s-title">Des financements ancrés dans votre territoire</h2>
                   <p className="s-desc">En complément du CPF et des OPCO nationaux, chaque région propose ses propres dispositifs pour les formations liées à la transition énergétique.</p>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"1rem",marginBottom:"1.5rem"}}>
+                <div className="rg3" style={{gap:"1rem",marginBottom:"1.5rem"}}>
                   {[
                     {reg:"Île-de-France",ico:"🗼",col:"var(--blue)",bg:"var(--blue-lt)",
                       items:["Chèque formation IdF — jusqu'à 1 200 €","PRIF OPCO Île-de-France","Aide à la VAE bâtiment & énergie"]},
@@ -2382,6 +2417,13 @@ export default function App(){
           <div className="section">
             <div className="section-inner">
               <CommunityIllo/>
+              {/* Événements et Dépôt ne sont plus dans la barre de navigation (retour 25) :
+                  ils restent accessibles ici, dans la rubrique dont ils relèvent. */}
+              <div className="ligne-liens" role="navigation" aria-label="Autres espaces de la communauté">
+                <button className="btn-secondary" onClick={()=>nav("evenements")}>📅 Événements de la filière</button>
+                <button className="btn-secondary" onClick={()=>nav("depot")}>📤 Déposer un contenu</button>
+                <button className="btn-secondary" onClick={()=>nav("about")}>ℹ️ À propos</button>
+              </div>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"1.5rem",flexWrap:"wrap",gap:"1rem"}}>
                 <div>
                   <div className="s-chip">Entraide professionnelle</div>
@@ -2611,7 +2653,7 @@ export default function App(){
             <div className="section-inner">
 
               {/* VISION */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"2.5rem",alignItems:"center",marginBottom:"4rem"}}>
+              <div className="rg2" style={{gap:"2.5rem",alignItems:"center",marginBottom:"4rem"}}>
                 <div>
                   <div className="s-chip" style={{background:"var(--blue-lt)",color:"var(--blue)",marginBottom:"1rem"}}>Notre vision</div>
                   <h2 className="s-title" style={{marginBottom:"1.25rem"}}>La technologie est prête.<br/>Les compétences, pas encore.</h2>
@@ -2664,7 +2706,7 @@ export default function App(){
                   <h2 className="s-title">Un consortium public-privé</h2>
                   <p className="s-desc">Les Éclaireurs! est une initiative collective. Aucun acteur ne domine — la plateforme est agnostique marque, neutre et ouverte.</p>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1.5rem",marginBottom:"2rem"}}>
+                <div className="rg2" style={{gap:"1.5rem",marginBottom:"2rem"}}>
                   {[
                     {tag:"Industriels & distributeurs",col:"var(--blue)",logos:["schneider","legrand","hager","siemens","rexel","sonepar"],desc:"Fournissent les contenus techniques, les ressources pédagogiques et cofinancent la plateforme."},
                     {tag:"Partenaires institutionnels",col:"var(--green)",logos:["ademe","enedis","edf","rte"],desc:"Apportent légitimité, financement public et ancrage territorial à travers les régions et branches professionnelles."},
@@ -2686,7 +2728,7 @@ export default function App(){
                   <div className="s-chip">Nos engagements</div>
                   <h2 className="s-title">Ce en quoi nous croyons</h2>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"1.25rem"}}>
+                <div className="rg4" style={{gap:"1.25rem"}}>
                   {[
                     {ico:"🔓",val:"Neutralité",desc:"Aucun favoritisme de marque. Toutes les ressources sont évaluées sur leurs mérites pédagogiques."},
                     {ico:"🌍",val:"Inclusion",desc:"Du CAP au Bac+5, pour tous les profils, partout en France. La formation ne doit pas être un privilège."},
