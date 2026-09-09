@@ -77,6 +77,8 @@
         border-top: 1px solid #edf0f4; font-size: .9rem; }
       .item:first-of-type { border-top: 0; }
       .item .ref { color: var(--doux); font-size: .78rem; font-weight: 700; min-width: 26px; }
+      .coche { width: 16px; height: 16px; flex-shrink: 0; align-self: center; accent-color: var(--bleu); cursor: pointer; }
+      .coche-vide { width: 16px; flex-shrink: 0; }
       .sep { height: 1px; background: var(--bordure); margin: 12px 0; border: 0; }
       .fin { font-size: .78rem; color: var(--doux); margin-top: 6px; }
     </style>
@@ -250,33 +252,72 @@
             <hr class="sep" />
 
             ${c.lignes
-              .map(
-                (r) => `
+              .map((r) => {
+                const ouvert = OUVERT.includes(r.statut)
+                /* Coché par défaut jusqu'à P2 : un P3 n'entre dans un lot que si
+                   on le décide explicitement, un retour sans priorité non plus. */
+                const coche = ouvert && ['P0', 'P1', 'P2'].includes(r.priorite)
+                return `
               <div class="item">
+                ${
+                  ouvert
+                    ? `<input type="checkbox" class="coche" data-choix="${r.id}"
+                         data-prio="${r.priorite || ''}" ${coche ? 'checked' : ''}
+                         aria-label="Inclure ce retour dans le lot"/>`
+                    : '<span class="coche-vide" aria-hidden="true"></span>'
+                }
                 <span class="ref">${r.id_source ? '#' + echapper(r.id_source) : '—'}</span>
                 <span class="etiq e-${r.priorite || 'P3'}">${r.priorite || '—'}</span>
                 <span style="flex:1">${echapper(r.message.slice(0, 130))}${r.message.length > 130 ? '…' : ''}</span>
                 <span class="etiq e-${echapper(r.statut)}">${LIB_STATUT[r.statut] ?? r.statut}</span>
               </div>`
-              )
+              })
               .join('')}
+
+            ${
+              c.ouverts.length
+                ? `<div class="ligne" style="margin-top:10px">
+                     <span class="doux">Cocher :</span>
+                     <button class="discret" data-cocher="P1">jusqu’à P1</button>
+                     <button class="discret" data-cocher="P2">jusqu’à P2</button>
+                     <button class="discret" data-cocher="P3">tout</button>
+                     <button class="discret" data-cocher="rien">rien</button>
+                   </div>`
+                : ''
+            }
 
             <div class="ligne" style="margin-top:12px">
               ${
-                c.actif
-                  ? `<button class="discret" data-act="retirer">Retirer du lot</button>`
-                  : c.ouverts.length
-                    ? `<button class="primaire" data-act="activer">Activer ce chantier</button>`
-                    : `<span class="doux">Rien d’ouvert dans ce chantier.</span>`
+                c.ouverts.length
+                  ? `<button class="primaire" data-act="appliquer">Mettre la sélection dans le lot</button>`
+                  : `<span class="doux">Rien d’ouvert dans ce chantier.</span>`
               }
               <button class="discret" data-act="voir">Voir les retours en détail</button>
             </div>
+            ${
+              c.ouverts.length
+                ? `<p class="fin">Les retours cochés passent « en cours » et rejoignent le lot du jour.
+                     Les décochés qui y étaient en sortent et redeviennent « nouveau ».</p>`
+                : ''
+            }
           </article>`
       }
 
       function brancherChantier(el) {
         const nom = el.dataset.chantier
-        const cible = nom === 'Sans chantier' ? 'is.null' : `eq.${encodeURIComponent(nom)}`
+        const cases = () => [...el.querySelectorAll('[data-choix]')]
+
+        el.querySelectorAll('[data-cocher]').forEach((b) => {
+          b.onclick = () => {
+            const seuil = b.dataset.cocher
+            cases().forEach((c) => {
+              const p = c.dataset.prio
+              c.checked =
+                seuil === 'rien' ? false : seuil === 'P3' ? true : Boolean(p) && p <= seuil
+            })
+          }
+        })
+
         el.querySelectorAll('[data-act]').forEach((b) => {
           b.onclick = async () => {
             if (b.dataset.act === 'voir') {
@@ -284,17 +325,27 @@
               vue = 'retours'
               return dessiner()
             }
-            const activer = b.dataset.act === 'activer'
+            const dedans = cases().filter((c) => c.checked).map((c) => c.dataset.choix)
+            const dehors = cases().filter((c) => !c.checked).map((c) => c.dataset.choix)
+            /* On ne remet en « nouveau » que ce qui était réellement dans un lot :
+               décocher une ligne jamais activée ne doit rien écrire. */
+            const aSortir = dehors.filter((id) => {
+              const r = retours.find((x) => x.id === id)
+              return r && (r.lot || r.statut === 'en_cours')
+            })
+            if (!dedans.length && !aSortir.length) return
             b.disabled = true
             try {
-              await api(`retours?chantier=${cible}&statut=in.(nouveau,en_cours)`, {
-                method: 'PATCH',
-                body: JSON.stringify(
-                  activer
-                    ? { lot: lotDuJour(), statut: 'en_cours' }
-                    : { lot: null, statut: 'nouveau' }
-                ),
-              })
+              if (dedans.length)
+                await api(`retours?id=in.(${dedans.join(',')})`, {
+                  method: 'PATCH',
+                  body: JSON.stringify({ lot: lotDuJour(), statut: 'en_cours' }),
+                })
+              if (aSortir.length)
+                await api(`retours?id=in.(${aSortir.join(',')})`, {
+                  method: 'PATCH',
+                  body: JSON.stringify({ lot: null, statut: 'nouveau' }),
+                })
               await charger()
               await dessiner()
             } catch (e) {
