@@ -16,16 +16,78 @@ const CLE_STOCKAGE = 'eclaireurs-auth'
 
 /* ─────────── Session ─────────── */
 
-export function session() {
+/** Session telle qu'elle est stockée, même périmée : c'est elle qui porte le
+ *  jeton de rafraîchissement. */
+function sessionStockee() {
   try {
     const brut = localStorage.getItem(CLE_STOCKAGE)
-    if (!brut) return null
-    const s = JSON.parse(brut)
-    if (s?.expires_at && s.expires_at * 1000 < Date.now()) return null
-    return s
+    return brut ? JSON.parse(brut) : null
   } catch {
     return null
   }
+}
+
+const perimee = (s, marge = 0) =>
+  Boolean(s?.expires_at) && s.expires_at * 1000 - marge <= Date.now()
+
+export function session() {
+  const s = sessionStockee()
+  if (!s || perimee(s)) return null
+  return s
+}
+
+/**
+ * Le jeton d'accès Supabase ne vit qu'une heure. Sans renouvellement, un
+ * utilisateur se retrouve déconnecté au bout d'une heure sans avoir rien fait
+ * et sans comprendre pourquoi. Le jeton de rafraîchissement, lui, est valable
+ * bien plus longtemps : on l'échange contre un nouveau jeton d'accès dès que
+ * l'ancien approche de sa fin.
+ */
+let renouvellementEnCours = null
+
+function normaliser(d) {
+  if (!d?.access_token) return null
+  return {
+    ...d,
+    expires_at: d.expires_at ?? Math.floor(Date.now() / 1000) + (d.expires_in ?? 3600),
+  }
+}
+
+export async function sessionValide() {
+  const s = sessionStockee()
+  if (!s) return null
+  // Marge d'une minute : mieux vaut renouveler un peu tôt que d'essuyer un 401.
+  if (!perimee(s, 60_000)) return s
+  if (!s.refresh_token) {
+    enregistrerSession(null)
+    return null
+  }
+  if (!renouvellementEnCours) {
+    renouvellementEnCours = (async () => {
+      try {
+        const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+          method: 'POST',
+          headers: { apikey: SUPABASE_CLE, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: s.refresh_token }),
+        })
+        if (!r.ok) {
+          // Jeton révoqué ou expiré : il faut vraiment se reconnecter.
+          enregistrerSession(null)
+          return null
+        }
+        const nouvelle = normaliser(await r.json())
+        enregistrerSession(nouvelle)
+        return nouvelle
+      } catch {
+        // Panne réseau : on garde la session en place et on retentera plus tard
+        // plutôt que de déconnecter quelqu'un parce que le wifi a sauté.
+        return s
+      } finally {
+        renouvellementEnCours = null
+      }
+    })()
+  }
+  return renouvellementEnCours
 }
 
 function enregistrerSession(s) {
@@ -44,16 +106,17 @@ export function surChangementSession(fn) {
   return () => abonnes.delete(fn)
 }
 
-function jeton() {
-  return session()?.access_token || SUPABASE_CLE
+async function jeton() {
+  const s = await sessionValide()
+  return s?.access_token || SUPABASE_CLE
 }
 
 /* ─────────── Données (PostgREST) ─────────── */
 
-function entetes(extra = {}) {
+async function entetes(extra = {}) {
   return {
     apikey: SUPABASE_CLE,
-    Authorization: `Bearer ${jeton()}`,
+    Authorization: `Bearer ${await jeton()}`,
     Accept: 'application/json',
     ...extra,
   }
@@ -68,7 +131,7 @@ export async function pg(table, params = {}) {
   for (const [cle, valeur] of Object.entries(params)) {
     if (valeur !== undefined && valeur !== null) url.searchParams.set(cle, valeur)
   }
-  const reponse = await fetch(url, { headers: entetes() })
+  const reponse = await fetch(url, { headers: await entetes() })
   if (!reponse.ok) {
     throw new Error(`${table} : ${reponse.status} ${await reponse.text()}`)
   }
@@ -85,7 +148,7 @@ export async function pgInsert(table, lignes, { retour = true, ignorerDoublons =
     .join(',')
   const reponse = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
-    headers: entetes({ 'Content-Type': 'application/json', Prefer: prefer }),
+    headers: await entetes({ 'Content-Type': 'application/json', Prefer: prefer }),
     body: JSON.stringify(lignes),
   })
   if (!reponse.ok) throw new Error(`${table} : ${reponse.status} ${await reponse.text()}`)
@@ -96,7 +159,7 @@ export async function pgInsert(table, lignes, { retour = true, ignorerDoublons =
 export async function pgDelete(table, filtres) {
   const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`)
   for (const [cle, valeur] of Object.entries(filtres)) url.searchParams.set(cle, valeur)
-  const reponse = await fetch(url, { method: 'DELETE', headers: entetes() })
+  const reponse = await fetch(url, { method: 'DELETE', headers: await entetes() })
   if (!reponse.ok) throw new Error(`${table} : ${reponse.status} ${await reponse.text()}`)
 }
 
@@ -106,7 +169,7 @@ export async function pgUpdate(table, filtres, champs) {
   for (const [cle, valeur] of Object.entries(filtres)) url.searchParams.set(cle, valeur)
   const reponse = await fetch(url, {
     method: 'PATCH',
-    headers: entetes({ 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+    headers: await entetes({ 'Content-Type': 'application/json', Prefer: 'return=representation' }),
     body: JSON.stringify(champs),
   })
   if (!reponse.ok) throw new Error(`${table} : ${reponse.status} ${await reponse.text()}`)
@@ -147,11 +210,14 @@ export async function motDePasseOublie(email) {
 }
 
 export function deconnexion() {
-  const s = session()
+  const s = sessionStockee()
   if (s?.access_token) {
     fetch(`${SUPABASE_URL}/auth/v1/logout`, {
       method: 'POST',
-      headers: entetes(),
+      headers: {
+        apikey: SUPABASE_CLE,
+        Authorization: `Bearer ${s.access_token}`,
+      },
     }).catch(() => {})
   }
   enregistrerSession(null)
@@ -187,4 +253,17 @@ function traduire(message = '') {
   if (m.includes('rate limit') || m.includes('too many'))
     return 'Trop de tentatives. Réessayez dans quelques minutes.'
   return message || 'Une erreur est survenue.'
+}
+
+/* ─────────── Entretien de la session ───────────
+ *
+ * Au chargement, puis chaque fois que l'onglet redevient visible : un
+ * ordinateur mis en veille pendant deux heures retrouve sa session au réveil
+ * au lieu de renvoyer vers l'écran de connexion.
+ */
+if (typeof window !== 'undefined') {
+  sessionValide().catch(() => {})
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) sessionValide().catch(() => {})
+  })
 }

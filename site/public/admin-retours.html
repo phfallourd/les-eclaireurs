@@ -97,22 +97,57 @@
           ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
         )
 
+      function sessionStockee() {
+        try { return JSON.parse(localStorage.getItem(CLE_SESSION) || 'null') } catch { return null }
+      }
+      const perimee = (s, marge = 0) =>
+        Boolean(s?.expires_at) && s.expires_at * 1000 - marge <= Date.now()
+
       function session() {
-        try {
-          const s = JSON.parse(localStorage.getItem(CLE_SESSION) || 'null')
-          if (s?.expires_at && s.expires_at * 1000 < Date.now()) return null
-          return s
-        } catch { return null }
+        const s = sessionStockee()
+        return !s || perimee(s) ? null : s
       }
 
-      const entetes = () => ({
+      /* Le jeton d'accès Supabase ne vit qu'une heure. Sans renouvellement,
+         l'écran redemande le mot de passe à chaque session de travail. Le jeton
+         de rafraîchissement, lui, dure bien plus longtemps : on l'échange
+         contre un nouveau jeton dès que l'ancien approche de sa fin. */
+      let renouvellement = null
+      async function sessionValide() {
+        const s = sessionStockee()
+        if (!s) return null
+        if (!perimee(s, 60000)) return s
+        if (!s.refresh_token) { localStorage.removeItem(CLE_SESSION); return null }
+        if (!renouvellement) {
+          renouvellement = (async () => {
+            try {
+              const r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=refresh_token`, {
+                method: 'POST',
+                headers: { apikey: CLE, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: s.refresh_token }),
+              })
+              if (!r.ok) { localStorage.removeItem(CLE_SESSION); return null }
+              const d = await r.json()
+              const n = { ...d, expires_at: d.expires_at ?? Math.floor(Date.now() / 1000) + (d.expires_in ?? 3600) }
+              localStorage.setItem(CLE_SESSION, JSON.stringify(n))
+              return n
+            } catch {
+              // Réseau coupé : on garde la session plutôt que de déconnecter.
+              return s
+            } finally { renouvellement = null }
+          })()
+        }
+        return renouvellement
+      }
+
+      const entetes = async () => ({
         apikey: CLE,
-        Authorization: `Bearer ${session()?.access_token || CLE}`,
+        Authorization: `Bearer ${(await sessionValide())?.access_token || CLE}`,
         'Content-Type': 'application/json',
       })
 
       async function api(chemin, options = {}) {
-        const r = await fetch(`${URL_BASE}/rest/v1/${chemin}`, { headers: entetes(), ...options })
+        const r = await fetch(`${URL_BASE}/rest/v1/${chemin}`, { headers: await entetes(), ...options })
         if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
         return r.status === 204 ? null : r.json()
       }
@@ -153,7 +188,13 @@
             })
             const d = await r.json()
             if (!r.ok) throw new Error(d.error_description || d.msg || 'Connexion refusée')
-            localStorage.setItem(CLE_SESSION, JSON.stringify(d))
+            localStorage.setItem(
+              CLE_SESSION,
+              JSON.stringify({
+                ...d,
+                expires_at: d.expires_at ?? Math.floor(Date.now() / 1000) + (d.expires_in ?? 3600),
+              })
+            )
             demarrer()
           } catch (err) {
             ecranConnexion(err.message)
@@ -781,9 +822,12 @@
       /* ─────────── Démarrage ─────────── */
 
       async function demarrer() {
-        if (!session()) return ecranConnexion()
+        page.textContent = 'Chargement…'
+        // Renouvelle le jeton avant de décider s'il faut redemander le mot de passe.
+        const s = await sessionValide()
+        if (!s) return ecranConnexion()
         try {
-          const uid = session().user?.id
+          const uid = s.user?.id
           const profils = await api(`profils?select=role&id=eq.${uid}`)
           if (profils[0]?.role !== 'admin') {
             page.innerHTML = `
@@ -804,6 +848,11 @@
           page.innerHTML = `<h1>Retours testeurs</h1><p class="msg msg-ko">${echapper(e.message)}</p>`
         }
       }
+
+      // L'ordinateur mis en veille retrouve sa session au réveil, sans reconnexion.
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) sessionValide().catch(() => {})
+      })
 
       demarrer()
     </script>
