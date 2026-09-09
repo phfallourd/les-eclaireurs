@@ -19,6 +19,41 @@ const SHORT_FORMATS = ["Vidéo", "Micro-learning"];
 const isShort = (c) => SHORT_FORMATS.includes(c.format);
 
 /**
+ * Durée en minutes, extraite d'un libellé libre : « ~6 min », « 1h30 », « 2h ».
+ * Renvoie l'infini quand rien n'est lisible, pour que ces contenus se rangent
+ * en fin de liste plutôt que d'être présentés comme les plus courts.
+ */
+function minutes(libelle = "") {
+  const s = String(libelle).toLowerCase();
+  const h = s.match(/(\d+)\s*h\s*(\d+)?/);
+  if (h) return Number(h[1]) * 60 + Number(h[2] || 0);
+  const m = s.match(/(\d+)\s*min/);
+  if (m) return Number(m[1]);
+  return Infinity;
+}
+
+/* Ce qu'un électricien cherche sur un chantier vient en premier : le conseil
+   d'appoint, puis la vidéo qu'on regarde pendant une pause, puis le contenu
+   qu'on garde pour le soir (remarque 13). */
+const PALIERS = [
+  { max: 3, titre: "Le conseil en moins de 3 minutes" },
+  { max: 10, titre: "Moins de 10 minutes" },
+  { max: Infinity, titre: "Pour aller plus loin" },
+];
+
+function grouperParDuree(liste) {
+  const tri = [...liste].sort((a, b) => minutes(a.duration) - minutes(b.duration));
+  return PALIERS.map((p, i) => ({
+    titre: p.titre,
+    items: tri.filter((c) => {
+      const m = minutes(c.duration);
+      const plancher = i === 0 ? -1 : PALIERS[i - 1].max;
+      return m > plancher && m <= p.max;
+    }),
+  })).filter((g) => g.items.length);
+}
+
+/**
  * Une vidéo disposant d'un lien s'ouvre directement, sans fiche intermédiaire :
  * sur un chantier, c'est un clic de trop. Les formations longues gardent leur
  * fiche, où durée, niveau et prérequis comptent avant de s'engager.
@@ -226,31 +261,42 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
           </div>
         )}
 
-        {filtered.map((c) => (
-          <CardWrapper key={c.id} course={c} onOpen={() => setSelected(c)}>
-            <div className="tuto-thumb" style={{ background: c.thumbBg }}>
-              <span className="tt-emoji">{c.emoji}</span>
-            </div>
-            <div className="tuto-info">
-              <div className="tuto-title">{c.title}</div>
-              <div className="tuto-meta">
-                <span
-                  className="brand-tag"
-                  style={{
-                    background: `${BRAND_COLORS[c.source] || "#64748b"}18`,
-                    color: BRAND_COLORS[c.source] || "#64748b",
-                  }}
-                >
-                  {c.sourceLabel}
-                </span>
-                <span className="tuto-dur">{c.duration}</span>
-                {c.url && <span className="link-dot" title="Lien officiel" />}
-              </div>
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text3)" }}>
-              {isDirect(c) ? "↗" : "›"}
-            </div>
-          </CardWrapper>
+        {/* En mode vidéos, l'ordre est celui de la durée : on cherche d'abord
+            le geste rapide (remarque 13). En mode formations, l'ordre reste
+            celui du catalogue. */}
+        {(mode === "videos"
+          ? grouperParDuree(filtered)
+          : [{ titre: null, items: filtered }]
+        ).map((groupe) => (
+          <div key={groupe.titre || "tout"}>
+            {groupe.titre && <div className="palier-titre">{groupe.titre}</div>}
+            {groupe.items.map((c) => (
+              <CardWrapper key={c.id} course={c} onOpen={() => setSelected(c)}>
+                <div className="tuto-thumb" style={{ background: c.thumbBg }}>
+                  <span className="tt-emoji">{c.emoji}</span>
+                </div>
+                <div className="tuto-info">
+                  <div className="tuto-title">{c.title}</div>
+                  <div className="tuto-meta">
+                    <span
+                      className="brand-tag"
+                      style={{
+                        background: `${BRAND_COLORS[c.source] || "#64748b"}18`,
+                        color: BRAND_COLORS[c.source] || "#64748b",
+                      }}
+                    >
+                      {c.sourceLabel}
+                    </span>
+                    <span className="tuto-dur">{c.duration}</span>
+                    {c.url && <span className="link-dot" title="Lien officiel" />}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text3)" }}>
+                  {isDirect(c) ? "↗" : "›"}
+                </div>
+              </CardWrapper>
+            ))}
+          </div>
         ))}
 
         {generatedAt && filtered.length > 0 && (

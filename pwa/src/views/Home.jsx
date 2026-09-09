@@ -45,6 +45,14 @@ export default function Home({ go, onAsk }) {
   return (
     <div className="view active">
       <div className="home-pad">
+        <div className="accroche">
+          <h1 className="accroche-titre">Les Éclaireurs!</h1>
+          <p className="accroche-sous">
+            Bienvenue sur la plateforme des accélérateurs de la transition
+            électrique !
+          </p>
+        </div>
+
         {/* ── Zone de dialogue : entrée principale de l'application ── */}
         <div className="agent-card">
           <div className="agent-header">
@@ -157,6 +165,19 @@ export default function Home({ go, onAsk }) {
             <div className="ac-title">Réseau de pairs</div>
             <div className="ac-sub">Entraide entre électriciens</div>
             <span className="ac-badge badge-demo">Démo</span>
+          </div>
+
+          <div className="action-card" onClick={() => go("news")}>
+            <div className="ac-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0f766e" strokeWidth="2" strokeLinejoin="round">
+                <path d="M4 5h11a1 1 0 0 1 1 1v13H5a1 1 0 0 1-1-1z" />
+                <path d="M16 9h3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3" />
+                <path d="M7 9h6M7 12.5h6" strokeLinecap="round" />
+              </svg>
+            </div>
+            <div className="ac-title">Actualités</div>
+            <div className="ac-sub">Rendez-vous et infos métier</div>
+            <span className="ac-badge badge-demo">Partiel</span>
           </div>
 
           <div className="action-card orange" onClick={() => go("hotline")}>

@@ -1622,3 +1622,175 @@ a.tuto-card {
   text-decoration: none;
   color: inherit;
 }
+
+
+/* ─────────── ACCROCHE D'ACCUEIL (remarque 12) ─────────── */
+.accroche {
+  margin: 2px 0 14px;
+}
+.accroche-titre {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 0 0 2px;
+  color: var(--text);
+}
+.accroche-sous {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+
+/* ─────────── HOTLINE COMPACTE (remarques 7 et 8) ───────────
+   Une ligne par fabricant, bouton d'appel réduit à droite : les marques
+   tiennent à l'écran sans défilement. */
+.marque-ligne {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border2);
+  border-radius: 11px;
+  padding: 9px 11px;
+  margin-bottom: 7px;
+  box-shadow: var(--shadow);
+}
+.marque-ligne.sans-numero {
+  opacity: 0.62;
+}
+.ml-texte {
+  flex: 1;
+  min-width: 0;
+}
+.ml-nom {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+.ml-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  margin-top: 1px;
+}
+.ml-hrs {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-top: 1px;
+}
+.ml-appel {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.ml-appel svg {
+  width: 17px;
+  height: 17px;
+}
+.ml-appel.inactif {
+  background: var(--border2);
+}
+
+/* ─────────── ACTUALITÉS (remarques 1, 20 et 23) ─────────── */
+.rdv-ligne {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 9px 11px;
+  margin-bottom: 7px;
+}
+.rdv-date {
+  flex-shrink: 0;
+  width: 42px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  padding-right: 9px;
+}
+.rdv-jour {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+.rdv-mois {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text2);
+  font-weight: 700;
+}
+.rdv-titre {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+}
+.rdv-meta {
+  font-size: 10.5px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+.actu-carte {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px;
+  margin-bottom: 8px;
+}
+.actu-tag {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0f766e;
+  background: #ccfbf1;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-bottom: 5px;
+}
+.actu-titre {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.35;
+}
+.actu-resume {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text2);
+  margin: 4px 0 0;
+}
+.actu-source {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* ─────────── PALIERS DE DURÉE (remarque 13) ─────────── */
+.palier-titre {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text2);
+  margin: 14px 0 7px;
+}
+.palier-titre:first-child {
+  margin-top: 4px;
+}

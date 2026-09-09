@@ -4,6 +4,7 @@ import Catalog from "./views/Catalog";
 import Assistant from "./views/Assistant";
 import Community from "./views/Community";
 import Hotline from "./views/Hotline";
+import News from "./views/News";
 import ProfileBar from "./components/ProfileBar";
 
 const SCREENS = [
@@ -11,6 +12,7 @@ const SCREENS = [
   "assistant",
   "videos",
   "catalog",
+  "news",
   "community",
   "hotline",
 ];
@@ -55,6 +57,27 @@ const NAV = [
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+      </>
+    ),
+  },
+  {
+    id: "news",
+    label: "News",
+    icon: (
+      <>
+        <path
+          d="M4 5h11a1 1 0 0 1 1 1v13H5a1 1 0 0 1-1-1z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M16 9h3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <path d="M7 9h6M7 12.5h6M7 16h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       </>
     ),
   },
@@ -159,6 +182,7 @@ export default function App() {
         {screen === "catalog" && (
           <Catalog onBack={goHome} go={go} initialMode="training" key="training" />
         )}
+        {screen === "news" && <News onBack={goHome} />}
         {screen === "community" && <Community onBack={goHome} />}
         {screen === "hotline" && <Hotline onBack={goHome} />}
       </div>

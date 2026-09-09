@@ -266,6 +266,9 @@ a.skip-link:focus{top:1rem;}
   font-size:.72rem;font-weight:500;cursor:pointer;transition:all .2s;background:none;white-space:nowrap;}
 .fchip:hover{border-color:var(--blue);color:var(--blue);}
 .fchip.active{background:var(--blue);border-color:var(--blue);color:white;font-weight:700;}
+.ccard-thumb-pro{display:flex;align-items:center;justify-content:center;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));}
+.ccard-thumb-pro img{max-width:62%;max-height:46px;object-fit:contain;}
 .src-chips{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.5rem;}
 .sc-n,.fchip-n{font-size:.66rem;font-weight:800;opacity:.6;font-variant-numeric:tabular-nums;}
 .legende-niveaux{display:flex;flex-wrap:wrap;gap:.2rem 1rem;align-items:baseline;
@@ -2219,11 +2222,13 @@ export default function App(){
                     <article key={c.id} className="ccard" role="listitem" style={{animationDelay:`${i*.05}s`}}
                       onClick={()=>setSelected(c)} tabIndex={0} onKeyDown={e=>e.key==="Enter"&&setSelected(c)}
                       aria-label={`Formation : ${c.title}`}>
-                      <div className="ccard-thumb" style={{background:c.thumbBg}} aria-hidden="true">
-                        <span style={{fontSize:"3rem"}}>{c.emoji}</span>
-                        <div className="ccard-thumb-badge">
-                          <Logo id={c.source} h={12}/>
-                        </div>
+                      {/* Un aplat sobre au logo du fournisseur plutôt qu'une vignette
+                          emoji : la page s'adresse à des professionnels (remarque 27).
+                          L'emoji reste en repli quand la marque n'a pas de logo. */}
+                      <div className="ccard-thumb ccard-thumb-pro" style={{background:c.thumbBg}} aria-hidden="true">
+                        {LOGOS[c.source]
+                          ? <Logo id={c.source} h={40}/>
+                          : <span style={{fontSize:"2.4rem"}}>{c.emoji}</span>}
                       </div>
                       <div className="ccard-body">
                         <div className="ccard-source-row">
