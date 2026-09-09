@@ -68,6 +68,9 @@
         font-size: .78rem; margin: 8px 0 0; }
       dt { color: var(--doux); font-weight: 600; }
       dd { margin: 0; word-break: break-all; }
+      .rapport { white-space: pre-wrap; font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: #fbfcfd; border: 1px solid var(--bordure); border-radius: 10px;
+        padding: 14px; max-height: 62vh; overflow-y: auto; }
       .onglets { display: flex; gap: 7px; margin-bottom: 14px; }
       .onglets .discret { min-height: 40px; border-radius: 9px; }
       .item { display: flex; gap: 9px; align-items: baseline; padding: 6px 0;
@@ -374,7 +377,12 @@
               </dl>
             </details>
 
-            <label for="n-${r.id}">Note interne</label>
+            <label for="rep-${r.id}">Réponse au demandeur — reprise telle quelle dans le point hebdomadaire</label>
+            <textarea id="rep-${r.id}" data-reponse placeholder="Ce que vous direz à ${echapper(
+              r.auteur
+            )}. En clair, sans jargon.">${echapper(r.reponse || '')}</textarea>
+
+            <label for="n-${r.id}">Note interne — le pourquoi technique, pour l’équipe</label>
             <textarea id="n-${r.id}" data-note>${echapper(r.note_interne || '')}</textarea>
             <div class="ligne" style="margin-top:10px">
               ${Object.entries(LIB_STATUT)
@@ -391,6 +399,7 @@
       function brancherRetour(el) {
         const id = el.dataset.id
         const note = el.querySelector('[data-note]')
+        const reponse = el.querySelector('[data-reponse]')
         const fin = el.querySelector('[data-fin]')
         const dire = (t) => {
           fin.textContent = t
@@ -433,13 +442,121 @@
               await majRetour(id, {
                 statut: b.dataset.statut,
                 note_interne: note.value.trim() || null,
+                reponse: reponse.value.trim() || null,
               })
-              dire('Enregistré.')
+              dire(
+                ['traite', 'refuse'].includes(b.dataset.statut) && !reponse.value.trim()
+                  ? 'Enregistré — mais sans réponse au demandeur, ce retour sortira vide du point hebdomadaire.'
+                  : 'Enregistré.'
+              )
             } catch (e) {
               dire('Échec : ' + e.message)
             }
           }
         })
+      }
+
+      /* ─────────── Point hebdomadaire ───────────
+         Groupé par demandeur, et non par chantier : chacun veut d'abord savoir
+         ce qu'on a fait de SES remarques. La réponse envoyée est la colonne
+         `reponse`, jamais la note interne — celle-ci parle de code. */
+
+      let jours = 7
+
+      function texteRapport() {
+        const depuis = Date.now() - jours * 86400000
+        const recent = (r) => new Date(r.updated_at || r.created_at).getTime() >= depuis
+        const dateFr = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date())
+        const clos = ['traite', 'refuse']
+
+        const faits = retours.filter((r) => clos.includes(r.statut) && recent(r))
+        const enCours = retours.filter((r) => r.statut === 'en_cours')
+        const attente = retours.filter((r) => r.statut === 'nouveau')
+
+        const L = []
+        L.push(`Les Éclaireurs! — Point du ${dateFr}`)
+        L.push('')
+        L.push(
+          `${faits.length} remarque${faits.length > 1 ? 's' : ''} traitée${
+            faits.length > 1 ? 's' : ''
+          } sur les ${jours} derniers jours · ${enCours.length} en cours · ${attente.length} à venir.`
+        )
+        L.push('')
+
+        /* Ce qui a changé, vu depuis le produit et non depuis la liste */
+        const parChantier = new Map()
+        for (const r of faits) {
+          const k = r.chantier || 'Divers'
+          if (!parChantier.has(k)) parChantier.set(k, [])
+          parChantier.get(k).push(r)
+        }
+        if (parChantier.size) {
+          L.push('CE QUI A CHANGÉ')
+          L.push('')
+          for (const [ch, lignes] of parChantier) {
+            const refs = lignes.map((r) => (r.id_source ? '#' + r.id_source : '')).filter(Boolean)
+            L.push(
+              `• ${ch} — ${lignes.length} remarque${lignes.length > 1 ? 's' : ''}${
+                refs.length ? ' (' + refs.join(', ') + ')' : ''
+              }`
+            )
+            const vues = new Set()
+            for (const r of lignes) {
+              const l = (r.reponse || '').split('\n')[0].trim()
+              if (l && !vues.has(l)) {
+                vues.add(l)
+                L.push(`    ${l.length > 150 ? l.slice(0, 150) + '…' : l}`)
+              }
+            }
+            L.push('')
+          }
+        }
+
+        /* Réponse nominative */
+        const parQui = new Map()
+        for (const r of retours) {
+          if (r.statut === 'refuse' && !recent(r)) continue
+          const k = r.auteur || 'anonyme'
+          if (!parQui.has(k)) parQui.set(k, [])
+          parQui.get(k).push(r)
+        }
+        const ordre = [...parQui.entries()].sort((a, b) => b[1].length - a[1].length)
+
+        L.push('RÉPONSE À CHAQUE REMARQUE')
+        for (const [qui, lignes] of ordre) {
+          const f = lignes.filter((r) => clos.includes(r.statut))
+          const c = lignes.filter((r) => r.statut === 'en_cours')
+          const a = lignes.filter((r) => r.statut === 'nouveau')
+          L.push('')
+          L.push(`── ${qui} — ${lignes.length} remarque${lignes.length > 1 ? 's' : ''} ──`)
+          const bloc = (titre, tab, avecReponse) => {
+            if (!tab.length) return
+            L.push('')
+            L.push(`${titre} (${tab.length})`)
+            for (const r of tab) {
+              const ref = r.id_source ? `#${r.id_source} ` : ''
+              const msg = r.message.replace(/\s+/g, ' ').trim()
+              L.push(`  ${ref}« ${msg.length > 110 ? msg.slice(0, 110) + '…' : msg} »`)
+              if (avecReponse) {
+                const rep = r.reponse || '(réponse à rédiger)'
+                rep.split('\n').forEach((li) => L.push(`      → ${li}`))
+              } else if (r.priorite) {
+                L.push(`      → prévu, priorité ${r.priorite}`)
+              }
+            }
+          }
+          bloc('Traité', f, true)
+          bloc('En cours', c, true)
+          bloc('À venir', a, false)
+        }
+
+        L.push('')
+        L.push('—')
+        L.push(
+          'Priorités : P0 bloquant · P1 casse la crédibilité ou fausse le test · ' +
+            'P2 vrai défaut non bloquant · P3 hors périmètre pour l’instant.'
+        )
+        return L.join('\n')
       }
 
       /* ─────────── Écran ─────────── */
@@ -485,10 +602,31 @@
           <div class="onglets">
             <button class="discret" data-vue="chantiers" aria-pressed="${vue === 'chantiers'}">Par chantier</button>
             <button class="discret" data-vue="retours" aria-pressed="${vue === 'retours'}">Retour par retour</button>
+            <button class="discret" data-vue="rapport" aria-pressed="${vue === 'rapport'}">Point hebdomadaire</button>
           </div>
 
           ${
-            vue === 'chantiers'
+            vue === 'rapport'
+              ? `<div class="carte">
+                   <div class="ligne">
+                     <span class="doux">Période :</span>
+                     ${[7, 14, 30, 3650]
+                       .map(
+                         (j) =>
+                           `<button class="discret" data-jours="${j}" aria-pressed="${
+                             jours === j
+                           }">${j === 3650 ? 'Tout' : j + ' jours'}</button>`
+                       )
+                       .join('')}
+                     <button class="primaire" id="copier" style="margin-left:auto">Copier</button>
+                   </div>
+                   <p class="doux" style="margin:10px 0 0">
+                     Ce texte reprend la colonne « réponse au demandeur », jamais la note interne.
+                     Copiez-le dans votre e-mail — chacun y trouve ses propres remarques en premier.
+                   </p>
+                 </div>
+                 <div class="rapport" id="txt-rapport">${echapper(texteRapport())}</div>`
+              : vue === 'chantiers'
               ? `<p class="doux" style="margin:0 0 12px">
                    Activer un chantier passe ses retours ouverts en « en cours » et les marque
                    du lot du jour. C’est ce qui définit le prochain lot de mise en ligne.
@@ -559,6 +697,28 @@
         })
         const fc = document.getElementById('fc')
         if (fc) fc.onchange = () => { filtres.chantier = fc.value; dessiner() }
+        page.querySelectorAll('[data-jours]').forEach((b) => {
+          b.onclick = () => { jours = Number(b.dataset.jours); dessiner() }
+        })
+        const copier = document.getElementById('copier')
+        if (copier)
+          copier.onclick = async () => {
+            const t = document.getElementById('txt-rapport').textContent
+            try {
+              await navigator.clipboard.writeText(t)
+              copier.textContent = 'Copié ✓'
+            } catch {
+              // Presse-papiers refusé (page non sécurisée, permission) : on sélectionne
+              // le texte pour que Ctrl+C fonctionne quand même.
+              const r = document.createRange()
+              r.selectNodeContents(document.getElementById('txt-rapport'))
+              const s = getSelection()
+              s.removeAllRanges()
+              s.addRange(r)
+              copier.textContent = 'Sélectionné — Ctrl+C'
+            }
+            setTimeout(() => (copier.textContent = 'Copier'), 2500)
+          }
         page.querySelectorAll('[data-chantier]').forEach(brancherChantier)
         page.querySelectorAll('[data-id]').forEach(brancherRetour)
         document.getElementById('quitter').onclick = () => {
