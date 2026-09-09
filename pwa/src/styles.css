@@ -106,7 +106,9 @@ body {
 }
 
 .logo-mark {
-  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }
 
 .logo-name {
@@ -116,8 +118,9 @@ body {
   letter-spacing: -0.3px;
 }
 
+/* Charte du site : le point d'exclamation est bleu (remarque 4). */
 .logo-name span {
-  color: var(--orange);
+  color: #1a56db;
 }
 
 /* ─────────── LAYOUT ─────────── */

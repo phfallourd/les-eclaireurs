@@ -267,6 +267,11 @@ a.skip-link:focus{top:1rem;}
 .fchip:hover{border-color:var(--blue);color:var(--blue);}
 .fchip.active{background:var(--blue);border-color:var(--blue);color:white;font-weight:700;}
 .src-chips{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.sc-n,.fchip-n{font-size:.66rem;font-weight:800;opacity:.6;font-variant-numeric:tabular-nums;}
+.legende-niveaux{display:flex;flex-wrap:wrap;gap:.2rem 1rem;align-items:baseline;
+  margin:1rem 0 1.5rem;font-size:.76rem;color:var(--text2);}
+.legende-niveaux strong{color:var(--text);text-transform:uppercase;letter-spacing:.04em;font-size:.7rem;}
+.ln-cle{font-weight:800;color:var(--text);}
 .sc{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:var(--rf);
   border:1.5px solid var(--border);cursor:pointer;transition:all .2s;background:white;
   font-size:.72rem;font-weight:600;color:var(--text2);}
@@ -837,6 +842,16 @@ function Logo({id, h=22, grey=false}) {
 
 /* ─────────── DATA (source unique : src/data/catalog.js) ─────────── */
 const {SOURCES, THEMES, FORMATS, REGIONS, COURSES} = D.catalogue;
+
+/* Ce que recouvre chaque niveau. Sans cette légende, « Niv. 2 » ne dit rien à
+   personne — remarque 34. Les prérequis exacts restent à valider par métier. */
+const NIVEAUX = {
+  "Niv. 1":   "Accessible sans prérequis",
+  "Niv. 2":   "Demande une première pratique du domaine",
+  "Niv. 3":   "Expertise — prérequis techniques",
+  "Niv. 1-3": "Parcours progressif, du débutant à l'expert",
+};
+const sensNiveau = (n) => NIVEAUX[n] || "";
 /* Contenu chargé depuis Supabase avant le rendu (voir lib/donnees.js). */
 const PARCOURS = D.parcours;
 const FINANCEMENT = D.financement;
@@ -1788,14 +1803,19 @@ export default function App(){
     else showToast("Déjà dans votre parcours.");
   };
 
-  const filtered=COURSES.filter(c=>{
-    const sOk=src==="all"||c.source===src;
-    const tOk=theme==="Tous"||c.themes.includes(theme);
-    const fOk=fmt==="Tous"||c.format===fmt;
-    const rOk=region==="all"||c.regions.includes("all")||c.regions.includes(region);
-    const qOk=!search||c.title.toLowerCase().includes(search.toLowerCase())||c.desc.toLowerCase().includes(search.toLowerCase());
-    return sOk&&tOk&&fOk&&rOk&&qOk;
-  });
+  /* Un même prédicat sert au filtrage et au comptage des options : c'est ce qui
+     permet d'annoncer d'avance combien de formations une option renverrait, et
+     de désactiver celles qui n'en renverraient aucune (remarque 29). */
+  const correspond=(c,{s=src,t=theme,f=fmt,r=region,q=search}={})=>{
+    const req=(q||"").trim().toLowerCase();
+    return (s==="all"||c.source===s)
+      &&(t==="Tous"||c.themes.includes(t))
+      &&(f==="Tous"||c.format===f)
+      &&(r==="all"||c.regions.includes("all")||c.regions.includes(r))
+      &&(!req||c.title.toLowerCase().includes(req)||c.desc.toLowerCase().includes(req));
+  };
+  const filtered=COURSES.filter(c=>correspond(c));
+  const compte=(cle,valeur)=>COURSES.filter(c=>correspond(c,{[cle]:valeur})).length;
 
   const termLines=[
     {text:"$ connect --platform les-eclaireurs",cls:"tl-acc"},
@@ -1873,7 +1893,7 @@ export default function App(){
                   Formez-vous pour<br/><span className="grad">électrifier</span> demain.
                 </h1>
                 <p className="hero-desc">
-                  Le portail de formation multi-sources et agnostique marque pour les électriciens.
+                  Le portail de formation multi-sources et agnostique de marque pour les électriciens.
                   Schneider Electric, Legrand, Hager, Siemens, Rexel, Sonepar — réunis, organisés par compétences,
                   finançables via CPF et OPCO.
                 </p>
@@ -2121,12 +2141,20 @@ export default function App(){
           <div className="section">
             <div className="section-inner">
               <div className="src-chips" role="group" aria-label="Filtrer par source">
-                {SOURCES.map(s=>(
-                  <button key={s.id} className={`sc ${src===s.id?"active":""}`} onClick={()=>setSrc(s.id)} aria-pressed={src===s.id}>
-                    {s.id!=="all"&&<Logo id={s.id} h={16}/>}
-                    {s.label}
+                {SOURCES.map(s=>{
+                  const n=compte("s",s.id);
+                  return (
+                  <button key={s.id} className={`sc ${src===s.id?"active":""}`} onClick={()=>setSrc(s.id)}
+                    aria-pressed={src===s.id} aria-label={`${s.label} — ${n} formation${n>1?"s":""}`}
+                    disabled={n===0&&src!==s.id} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
+                    style={n===0&&src!==s.id?{opacity:.4,cursor:"not-allowed"}:{}}>
+                    {/* Le logo affiche déjà le nom de la marque : le répéter donnait
+                        « Schneider Electric Schneider Electric » (remarque 28). */}
+                    {s.id!=="all"?<Logo id={s.id} h={16}/>:s.label}
+                    <span className="sc-n">{n}</span>
                   </button>
-                ))}
+                  );
+                })}
               </div>
               <div className="search-wrap" role="search">
                 <div className="search-row">
@@ -2137,23 +2165,33 @@ export default function App(){
                 </div>
                 <div className="frow" role="group" aria-label="Filtrer par thème">
                   <span className="flabel" id="theme-label">Thème</span>
-                  {THEMES.map(t=><button key={t} className={`fchip ${theme===t?"active":""}`} onClick={()=>setTheme(t)} aria-pressed={theme===t} aria-labelledby="theme-label">{t}</button>)}
+                  {THEMES.map(t=>{const n=compte("t",t);return(
+                    <button key={t} className={`fchip ${theme===t?"active":""}`} onClick={()=>setTheme(t)}
+                      aria-pressed={theme===t} aria-labelledby="theme-label"
+                      disabled={n===0&&theme!==t} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
+                      style={n===0&&theme!==t?{opacity:.4,cursor:"not-allowed"}:{}}>{t} <span className="fchip-n">{n}</span></button>);})}
                 </div>
                 <div className="frow" style={{marginTop:".5rem"}} role="group" aria-label="Filtrer par format">
                   <span className="flabel" id="fmt-label">Format</span>
-                  {FORMATS.map(f=><button key={f} className={`fchip ${fmt===f?"active":""}`} onClick={()=>setFmt(f)} aria-pressed={fmt===f} aria-labelledby="fmt-label">{f}</button>)}
+                  {FORMATS.map(f=>{const n=compte("f",f);return(
+                    <button key={f} className={`fchip ${fmt===f?"active":""}`} onClick={()=>setFmt(f)}
+                      aria-pressed={fmt===f} aria-labelledby="fmt-label"
+                      disabled={n===0&&fmt!==f} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
+                      style={n===0&&fmt!==f?{opacity:.4,cursor:"not-allowed"}:{}}>{f} <span className="fchip-n">{n}</span></button>);})}
                 </div>
                 <div className="frow" style={{marginTop:".5rem"}} role="group" aria-label="Filtrer par région">
                   <span className="flabel" id="region-label" style={{display:"flex",alignItems:"center",gap:4}}>
                     <span>📍</span> Région
                   </span>
-                  {REGIONS.map(r=>(
+                  {REGIONS.map(r=>{const n=compte("r",r.id);return(
                     <button key={r.id} className={`fchip ${region===r.id?"active":""}`}
                       onClick={()=>setRegion(r.id)} aria-pressed={region===r.id} aria-labelledby="region-label"
-                      style={region===r.id?{background:"var(--violet)",borderColor:"var(--violet)"}:{}}>
-                      {r.ico} {r.label}
+                      disabled={n===0&&region!==r.id} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
+                      style={region===r.id?{background:"var(--violet)",borderColor:"var(--violet)"}
+                        :n===0?{opacity:.4,cursor:"not-allowed"}:{}}>
+                      {r.ico} {r.label} <span className="fchip-n">{n}</span>
                     </button>
-                  ))}
+                  );})}
                 </div>
                 {region!=="all"&&(
                   <div style={{marginTop:".75rem",padding:".6rem 1rem",background:"#ede9fe",border:"1.5px solid #c4b5fd",borderRadius:"var(--rl)",display:"flex",alignItems:"center",gap:".5rem",fontSize:".8rem",color:"var(--violet)"}}>
@@ -2163,6 +2201,12 @@ export default function App(){
                   </div>
                 )}
               </div>
+              <p className="legende-niveaux">
+                <strong>Niveaux</strong>
+                {Object.entries(NIVEAUX).map(([niv,sens])=>(
+                  <span key={niv}><span className="ln-cle">{niv}</span> {sens}</span>
+                ))}
+              </p>
               {filtered.length===0?(
                 <div style={{textAlign:"center",padding:"4rem",color:"var(--text2)"}} role="alert">
                   <div style={{fontSize:"3rem",marginBottom:"1rem"}} aria-hidden="true">🔍</div>
@@ -2184,7 +2228,7 @@ export default function App(){
                       <div className="ccard-body">
                         <div className="ccard-source-row">
                           <div className="source-mini"><Logo id={c.source} h={14}/></div>
-                          <span className="level-tag" style={{background:c.lvlBg,color:c.lvlColor}}>{c.level}</span>
+                          <span className="level-tag" style={{background:c.lvlBg,color:c.lvlColor}} title={sensNiveau(c.level)}>{c.level}</span>
                         </div>
                         <h3 className="ccard-title">{c.title}</h3>
                         <p className="ccard-desc">{c.desc}</p>
@@ -2289,7 +2333,7 @@ export default function App(){
                       <div className="ccard-body">
                         <div className="ccard-source-row">
                           <div className="source-mini"><Logo id={c.source} h={14}/></div>
-                          <span className="level-tag" style={{background:c.lvlBg,color:c.lvlColor}}>{c.level}</span>
+                          <span className="level-tag" style={{background:c.lvlBg,color:c.lvlColor}} title={sensNiveau(c.level)}>{c.level}</span>
                         </div>
                         <h3 className="ccard-title">{c.title}</h3>
                         <div className="ccard-footer">
@@ -2700,7 +2744,7 @@ export default function App(){
                 <div className="section-head">
                   <div className="s-chip" style={{background:"var(--green-lt)",color:"var(--green)"}}>🤝 Gouvernance</div>
                   <h2 className="s-title">Un consortium public-privé</h2>
-                  <p className="s-desc">Les Éclaireurs! est une initiative collective. Aucun acteur ne domine — la plateforme est agnostique marque, neutre et ouverte.</p>
+                  <p className="s-desc">Les Éclaireurs! est une initiative collective. Aucun acteur ne domine — la plateforme est agnostique de marque, neutre et ouverte.</p>
                 </div>
                 <div className="rg2" style={{gap:"1.5rem",marginBottom:"2rem"}}>
                   {[

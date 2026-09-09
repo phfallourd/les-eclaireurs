@@ -37,16 +37,25 @@ const NAV = [
     ),
   },
   {
-    id: "videos",
-    label: "Tutos",
+    id: "catalog",
+    label: "Formations",
     icon: (
-      <polygon
-        points="5,3 19,12 5,21"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <>
+        <path
+          d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v15H6.5A2.5 2.5 0 0 0 4 19.5z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v5H6.5A2.5 2.5 0 0 1 4 19.5z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </>
     ),
   },
   {
@@ -118,7 +127,7 @@ export default function App() {
     <div className="phone">
       <div className="header">
         <div className="logo">
-          <div className="logo-mark">⚡</div>
+          <img className="logo-mark" src="/logo-eclaireurs.jpg" alt="" width="26" height="26" />
           <div className="logo-name">
             Les Éclaireurs<span>!</span>
           </div>
@@ -145,29 +154,34 @@ export default function App() {
           />
         )}
         {screen === "videos" && (
-          <Catalog onBack={goHome} initialMode="videos" key="videos" />
+          <Catalog onBack={goHome} go={go} initialMode="videos" key="videos" />
         )}
         {screen === "catalog" && (
-          <Catalog onBack={goHome} initialMode="training" key="training" />
+          <Catalog onBack={goHome} go={go} initialMode="training" key="training" />
         )}
         {screen === "community" && <Community onBack={goHome} />}
         {screen === "hotline" && <Hotline onBack={goHome} />}
       </div>
 
       <nav className="nav-bar">
-        {NAV.map((n) => (
+        {NAV.map((n) => {
+          // « videos » et « catalog » sont les deux modes d'un même onglet :
+          // l'onglet Formations reste allumé quel que soit le mode affiché.
+          const actif = screen === n.id || (n.id === "catalog" && screen === "videos");
+          return (
           <button
             key={n.id}
-            className={`ni ${screen === n.id ? "on" : ""}`}
+            className={`ni ${actif ? "on" : ""}`}
             onClick={() => go(n.id)}
-            aria-current={screen === n.id ? "page" : undefined}
+            aria-current={actif ? "page" : undefined}
           >
             <svg viewBox="0 0 24 24" fill="none">
               {n.icon}
             </svg>
             <span>{n.label}</span>
           </button>
-        ))}
+          );
+        })}
       </nav>
     </div>
   );

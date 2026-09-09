@@ -64,7 +64,7 @@ function shortTheme(theme) {
 /**
  * @param {"videos"|"training"} initialMode  Vue d'entrée selon la tuile cliquée.
  */
-export default function Catalog({ onBack, initialMode = "videos" }) {
+export default function Catalog({ onBack, go, initialMode = "videos" }) {
   const { courses, themes, status, generatedAt } = useCatalog();
   const [mode, setMode] = useState(initialMode);
   const [query, setQuery] = useState("");
@@ -106,9 +106,18 @@ export default function Catalog({ onBack, initialMode = "videos" }) {
     [themes, pool]
   );
 
+  /* Les deux modes sont deux écrans de l'application : « videos » et « catalog ».
+     Basculer sans le dire au conteneur laissait la barre du bas allumée sur le
+     mauvais onglet, l'historique désynchronisé, et la recherche précédente
+     active sur un contenu qui ne la contenait pas — d'où l'impression de bug
+     (remarque 10). On passe donc par la navigation, ce qui remonte l'écran
+     proprement. */
   const switchMode = (next) => {
+    if (next === mode) return;
+    if (go) return go(next === "videos" ? "videos" : "catalog");
     setMode(next);
-    setTheme("Tous"); // le filtre précédent peut ne pas exister dans l'autre mode
+    setQuery("");
+    setTheme("Tous");
   };
 
   return (
