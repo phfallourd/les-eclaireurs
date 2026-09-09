@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Retours testeurs — Les Éclaireurs</title>
+    <style>
+      :root {
+        --fond: #f6f7f9; --surface: #fff; --bordure: #d8dee7;
+        --texte: #14202e; --doux: #5a6b7d; --bleu: #1a56db;
+        --rouge: #b42318; --rouge-f: #fdecea; --vert: #15803d; --vert-f: #e8f5ec;
+        --orange: #b45309; --orange-f: #fdf3e3;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--fond); color: var(--texte);
+        font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      .page { max-width: 940px; margin: 0 auto; padding: 20px 16px 60px; }
+      h1 { font-size: 1.4rem; margin: 0 0 4px; letter-spacing: -.01em; }
+      .doux { color: var(--doux); font-size: .88rem; }
+      .carte { background: var(--surface); border: 1px solid var(--bordure);
+        border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+      label { display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .03em; color: var(--doux); margin: 10px 0 5px; }
+      input, select, textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--bordure);
+        border-radius: 9px; font: inherit; background: #fff; color: var(--texte); }
+      textarea { min-height: 60px; resize: vertical; }
+      button { font: inherit; cursor: pointer; }
+      .primaire { min-height: 44px; padding: 10px 16px; border: 0; border-radius: 9px;
+        background: var(--bleu); color: #fff; font-weight: 700; }
+      .primaire:disabled { opacity: .55; cursor: not-allowed; }
+      .discret { min-height: 36px; padding: 6px 11px; border: 1px solid var(--bordure);
+        border-radius: 999px; background: #fff; color: var(--texte); font-size: .82rem; font-weight: 600; }
+      .discret[aria-pressed="true"] { border-color: var(--bleu); background: #eef3fd; color: var(--bleu); }
+      .ligne { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+      .entre { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+      .etiq { font-size: .74rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+        background: #eef1f5; color: var(--doux); white-space: nowrap; }
+      .e-bug { background: var(--rouge-f); color: var(--rouge); }
+      .e-evolution { background: #eef3fd; color: var(--bleu); }
+      .e-bloquant { background: var(--rouge-f); color: var(--rouge); }
+      .e-nouveau { background: var(--orange-f); color: var(--orange); }
+      .e-traite { background: var(--vert-f); color: var(--vert); }
+      .chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px; margin-bottom: 16px; }
+      .chiffre { background: var(--surface); border: 1px solid var(--bordure);
+        border-radius: 12px; padding: 10px 12px; }
+      .chiffre strong { display: block; font-size: 1.6rem; line-height: 1.15; }
+      .chiffre span { font-size: .78rem; color: var(--doux); }
+      .msg { padding: 10px 12px; border-radius: 9px; font-size: .88rem; margin: 10px 0; }
+      .msg-ko { background: var(--rouge-f); color: var(--rouge); }
+      .meta { font-size: .78rem; color: var(--doux); word-break: break-word; }
+      .corps { white-space: pre-wrap; margin: 8px 0; }
+      details summary { cursor: pointer; font-size: .8rem; color: var(--doux); }
+      dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px;
+        font-size: .78rem; margin: 8px 0 0; }
+      dt { color: var(--doux); font-weight: 600; }
+      dd { margin: 0; word-break: break-all; }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="page">Chargement…</div>
+
+    <script type="module">
+      const URL_BASE = 'https://eutjonpxqoxldrkhxjzt.supabase.co'
+      const CLE = 'sb_publishable_EJr8VnCNYyJGFFTwH81JlQ_-ithQD1C'
+      const CLE_SESSION = 'eclaireurs-auth' // même session que le site
+
+      const page = document.getElementById('page')
+      const echapper = (s) =>
+        String(s ?? '').replace(/[&<>"']/g, (c) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+        )
+
+      function session() {
+        try {
+          const s = JSON.parse(localStorage.getItem(CLE_SESSION) || 'null')
+          if (s?.expires_at && s.expires_at * 1000 < Date.now()) return null
+          return s
+        } catch { return null }
+      }
+
+      const entetes = () => ({
+        apikey: CLE,
+        Authorization: `Bearer ${session()?.access_token || CLE}`,
+        'Content-Type': 'application/json',
+      })
+
+      async function api(chemin, options = {}) {
+        const r = await fetch(`${URL_BASE}/rest/v1/${chemin}`, { headers: entetes(), ...options })
+        if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
+        return r.status === 204 ? null : r.json()
+      }
+
+      /* ─────────── Connexion ─────────── */
+
+      function ecranConnexion(erreur) {
+        page.innerHTML = `
+          <h1>Retours testeurs</h1>
+          <p class="doux">Espace réservé à l'équipe.</p>
+          <form class="carte" id="f">
+            ${erreur ? `<p class="msg msg-ko">${echapper(erreur)}</p>` : ''}
+            <label for="e">Adresse e-mail</label>
+            <input id="e" type="email" autocomplete="email" required />
+            <label for="m">Mot de passe</label>
+            <input id="m" type="password" autocomplete="current-password" required />
+            <button class="primaire" style="margin-top:14px;width:100%">Se connecter</button>
+          </form>`
+        document.getElementById('f').onsubmit = async (ev) => {
+          ev.preventDefault()
+          const bouton = ev.target.querySelector('button')
+          bouton.disabled = true
+          try {
+            const r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=password`, {
+              method: 'POST',
+              headers: { apikey: CLE, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: document.getElementById('e').value,
+                password: document.getElementById('m').value,
+              }),
+            })
+            const d = await r.json()
+            if (!r.ok) throw new Error(d.error_description || d.msg || 'Connexion refusée')
+            localStorage.setItem(CLE_SESSION, JSON.stringify(d))
+            demarrer()
+          } catch (err) {
+            ecranConnexion(err.message)
+          }
+        }
+      }
+
+      /* ─────────── Liste ─────────── */
+
+      const filtres = { statut: 'nouveau', application: '', type: '' }
+      let retours = []
+
+      const LIB_TYPE = { bug: 'Bug', evolution: 'Évolution', question: 'Question', autre: 'Autre' }
+      const LIB_STATUT = { nouveau: 'Nouveau', en_cours: 'En cours', traite: 'Traité', refuse: 'Refusé' }
+      const LIB_GRAVITE = { bloquant: 'Bloquant', genant: 'Gênant', mineur: 'Mineur' }
+
+      async function charger() {
+        const p = new URLSearchParams({ select: '*', order: 'created_at.desc', limit: '200' })
+        if (filtres.statut) p.set('statut', `eq.${filtres.statut}`)
+        if (filtres.application) p.set('application', `eq.${filtres.application}`)
+        if (filtres.type) p.set('type', `eq.${filtres.type}`)
+        retours = await api(`vue_retours?${p}`)
+      }
+
+      async function compteurs() {
+        const tous = await api('vue_retours?select=statut,type,gravite&limit=1000')
+        return {
+          total: tous.length,
+          nouveaux: tous.filter((r) => r.statut === 'nouveau').length,
+          bloquants: tous.filter((r) => r.gravite === 'bloquant' && r.statut !== 'traite').length,
+          idees: tous.filter((r) => r.type === 'evolution').length,
+        }
+      }
+
+      function carte(r) {
+        const date = new Intl.DateTimeFormat('fr-FR', {
+          dateStyle: 'short', timeStyle: 'short',
+        }).format(new Date(r.created_at))
+        return `
+          <article class="carte" data-id="${r.id}">
+            <div class="entre">
+              <div class="ligne">
+                <span class="etiq e-${echapper(r.type)}">${LIB_TYPE[r.type] ?? r.type}</span>
+                ${r.gravite ? `<span class="etiq e-${echapper(r.gravite)}">${LIB_GRAVITE[r.gravite]}</span>` : ''}
+                <span class="etiq">${r.application === 'pwa' ? '📱 Application' : '🖥️ Site'}</span>
+                <span class="etiq e-${echapper(r.statut)}">${LIB_STATUT[r.statut] ?? r.statut}</span>
+              </div>
+              <span class="meta">${date}</span>
+            </div>
+
+            <p class="corps">${echapper(r.message)}</p>
+            <p class="meta">${echapper(r.auteur)}${r.metier ? ' · ' + echapper(r.metier) : ''}${r.ecran ? ' · écran : ' + echapper(r.ecran) : ''}</p>
+
+            <details>
+              <summary>Contexte technique</summary>
+              <dl>
+                <dt>URL</dt><dd>${echapper(r.url)}</dd>
+                <dt>Version</dt><dd>${echapper(r.version)}</dd>
+                <dt>Écran</dt><dd>${echapper(r.taille_ecran)}</dd>
+                <dt>Navigateur</dt><dd>${echapper(r.navigateur)}</dd>
+              </dl>
+            </details>
+
+            <label for="n-${r.id}">Note interne</label>
+            <textarea id="n-${r.id}" data-note>${echapper(r.note_interne || '')}</textarea>
+            <div class="ligne" style="margin-top:10px">
+              ${Object.entries(LIB_STATUT)
+                .map(
+                  ([id, lib]) =>
+                    `<button class="discret" data-statut="${id}" aria-pressed="${r.statut === id}">${lib}</button>`
+                )
+                .join('')}
+            </div>
+          </article>`
+      }
+
+      function brancherCarte(el) {
+        const id = el.dataset.id
+        const note = el.querySelector('[data-note]')
+        el.querySelectorAll('[data-statut]').forEach((b) => {
+          b.onclick = async () => {
+            el.querySelectorAll('[data-statut]').forEach((x) =>
+              x.setAttribute('aria-pressed', x === b ? 'true' : 'false')
+            )
+            try {
+              await api(`retours?id=eq.${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  statut: b.dataset.statut,
+                  note_interne: note.value.trim() || null,
+                }),
+              })
+              b.textContent += ' ✓'
+              setTimeout(() => (b.textContent = b.textContent.replace(' ✓', '')), 1200)
+            } catch (e) {
+              alert("Mise à jour impossible : " + e.message)
+            }
+          }
+        })
+      }
+
+      async function dessiner() {
+        const c = await compteurs()
+        const bouton = (cle, valeur, libelle) =>
+          `<button class="discret" data-f="${cle}" data-v="${valeur}" aria-pressed="${filtres[cle] === valeur}">${libelle}</button>`
+
+        page.innerHTML = `
+          <div class="entre" style="margin-bottom:14px">
+            <div>
+              <h1>Retours testeurs</h1>
+              <p class="doux">Phase de test — ${c.total} retour${c.total > 1 ? 's' : ''} au total</p>
+            </div>
+            <button class="discret" id="quitter">Se déconnecter</button>
+          </div>
+
+          <div class="chiffres">
+            <div class="chiffre"><strong>${c.nouveaux}</strong><span>à traiter</span></div>
+            <div class="chiffre"><strong>${c.bloquants}</strong><span>bloquants ouverts</span></div>
+            <div class="chiffre"><strong>${c.idees}</strong><span>idées d'évolution</span></div>
+            <div class="chiffre"><strong>${c.total}</strong><span>au total</span></div>
+          </div>
+
+          <div class="carte">
+            <div class="ligne" style="margin-bottom:8px">
+              <span class="doux">Statut :</span>
+              ${bouton('statut', '', 'Tous')}
+              ${Object.entries(LIB_STATUT).map(([id, l]) => bouton('statut', id, l)).join('')}
+            </div>
+            <div class="ligne" style="margin-bottom:8px">
+              <span class="doux">Application :</span>
+              ${bouton('application', '', 'Les deux')}
+              ${bouton('application', 'site', 'Site')}
+              ${bouton('application', 'pwa', 'Mobile')}
+            </div>
+            <div class="ligne">
+              <span class="doux">Type :</span>
+              ${bouton('type', '', 'Tous')}
+              ${Object.entries(LIB_TYPE).map(([id, l]) => bouton('type', id, l)).join('')}
+            </div>
+          </div>
+
+          <div id="liste">
+            ${retours.length
+              ? retours.map(carte).join('')
+              : '<div class="carte doux" style="text-align:center">Aucun retour pour ce filtre.</div>'}
+          </div>`
+
+        page.querySelectorAll('[data-f]').forEach((b) => {
+          b.onclick = async () => {
+            filtres[b.dataset.f] = b.dataset.v
+            await charger()
+            await dessiner()
+          }
+        })
+        page.querySelectorAll('[data-id]').forEach(brancherCarte)
+        document.getElementById('quitter').onclick = () => {
+          localStorage.removeItem(CLE_SESSION)
+          ecranConnexion()
+        }
+      }
+
+      /* ─────────── Démarrage ─────────── */
+
+      async function demarrer() {
+        if (!session()) return ecranConnexion()
+        try {
+          const uid = session().user?.id
+          const profils = await api(`profils?select=role&id=eq.${uid}`)
+          if (profils[0]?.role !== 'admin') {
+            page.innerHTML = `
+              <h1>Retours testeurs</h1>
+              <p class="msg msg-ko">Ce compte n'a pas les droits d'administration.</p>
+              <p class="doux">Depuis le SQL Editor Supabase :<br>
+              <code>update public.profils set role = 'admin' where email = '…';</code></p>
+              <button class="discret" id="q">Changer de compte</button>`
+            document.getElementById('q').onclick = () => {
+              localStorage.removeItem(CLE_SESSION)
+              ecranConnexion()
+            }
+            return
+          }
+          await charger()
+          await dessiner()
+        } catch (e) {
+          page.innerHTML = `<h1>Retours testeurs</h1><p class="msg msg-ko">${echapper(e.message)}</p>`
+        }
+      }
+
+      demarrer()
+    </script>
+  </body>
+</html>

@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { chargerDonnees } from './lib/donnees'
+import RetourTesteur from './components/RetourTesteur'
 
 const racine = ReactDOM.createRoot(document.getElementById('root'))
 
@@ -11,6 +12,9 @@ chargerDonnees().then(async () => {
   racine.render(
     <React.StrictMode>
       <App />
+      {/* Bouton de retour testeur, monté à côté de l'application pour
+          n'imposer aucune modification à App.jsx. */}
+      <RetourTesteur application="site" />
     </React.StrictMode>
   )
 })
