@@ -127,6 +127,13 @@ export default function App() {
 
       <ProfileBar />
 
+      {/* Bandeau prototype : permanent pendant la phase de test. Les écrans
+          simulés portent en plus leur propre marque « Démo », qui elle survit
+          à la capture d'écran. */}
+      <div className="bandeau-proto" role="status">
+        <strong>Prototype en test</strong> — certaines rubriques sont des démonstrations.
+      </div>
+
       <div className="screen">
         {screen === "home" && <Home go={go} onAsk={askAssistant} />}
         {screen === "assistant" && (

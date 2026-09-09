@@ -119,8 +119,9 @@ export default function Assistant({ onBack, go, initialQuery = "" }) {
         {exchanges.length === 0 && (
           <>
             <p className="view-intro">
-              Décris ton chantier ou ton problème. L'assistant te renvoie vers
-              les vidéos et formations correspondantes.
+              Décris ton chantier ou ton problème. L'assistant cherche les mots
+              de ta question dans le catalogue et te renvoie vers les vidéos et
+              formations correspondantes.
             </p>
             <div className="suggest-grid">
               {SUGGESTIONS.map((s) => (

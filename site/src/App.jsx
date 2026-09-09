@@ -8,6 +8,7 @@ const CSS = `
 ${FONTS}
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
+  --bandeau:38px;
   --white:#fff; --bg:#f4f6fb; --bg2:#eef1f8; --card:#fff;
   --blue:#1a56db; --blue-dk:#1341b5; --blue-lt:#e8effe; --blue-md:#c7d7fb;
   --violet:#7c3aed; --violet-lt:#ede9fe;
@@ -25,7 +26,7 @@ ${FONTS}
   --r:12px; --rl:20px; --rf:9999px;
 }
 html{overflow-x:hidden;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;max-width:100%;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;max-width:100%;padding-top:var(--bandeau);}
 
 /* accessibility */
 :focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:4px;}
@@ -42,7 +43,20 @@ a.skip-link:focus{top:1rem;}
 @keyframes gshift{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
 
 /* ── NAV ── */
-.nav{position:fixed;top:0;inset-inline:0;z-index:200;height:68px;
+/* Bandeau prototype : hauteur réservée en haut de page pendant le pilote. */
+.bandeau-demo{position:fixed;top:0;inset-inline:0;z-index:300;height:var(--bandeau);
+  display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap;
+  padding:0 1rem;background:#14202e;color:#fff;font-size:.79rem;line-height:1.25;text-align:center;}
+.bandeau-demo strong{color:#fbbf24;}
+.bandeau-demo button{background:none;border:0;color:#fff;font:inherit;font-weight:700;
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0;}
+/* Marque locale : elle survit à la capture d'écran, contrairement au bandeau. */
+.puce-demo{display:inline-flex;align-items:center;gap:4px;font-size:.66rem;font-weight:800;
+  letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;
+  background:#fef3c7;color:#92400e;border:1px solid #fcd34d;vertical-align:middle;}
+.bloc-demo{border:1.5px dashed #fcd34d;border-radius:var(--rl);padding:1rem;background:#fffbeb80;}
+.note-demo{font-size:.78rem;color:#92400e;margin-top:.6rem;}
+.nav{position:fixed;top:var(--bandeau);inset-inline:0;z-index:200;height:68px;
   display:flex;align-items:center;justify-content:space-between;padding:0 2rem;
   background:rgba(255,255,255,.96);backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);box-shadow:var(--sh);}
@@ -94,16 +108,6 @@ a.skip-link:focus{top:1rem;}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .stat-label{font-size:.68rem;color:var(--text2);font-weight:500;margin-top:2px;line-height:1.3;}
 .hero-btns{display:flex;gap:1rem;flex-wrap:wrap;}
-.trust-bar{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;margin-top:1.2rem;}
-.trust-item{display:flex;align-items:center;gap:.42rem;font-size:.78rem;color:var(--text2);}
-.trust-item strong{color:var(--text);font-weight:800;}
-.trust-sep{width:1px;height:16px;background:var(--border);flex-shrink:0;}
-.trust-excellent{font-weight:800;font-size:.78rem;color:var(--text);text-decoration:underline;text-underline-offset:2px;}
-.trust-stars{display:flex;align-items:center;gap:1px;}
-.trust-star{font-size:.95rem;line-height:1;}
-.trust-star.full{color:#00B67A;}
-.trust-star.half{color:var(--border2);position:relative;display:inline-block;}
-.trust-star.half::after{content:'★';position:absolute;left:0;top:0;color:#00B67A;clip-path:inset(0 45% 0 0);}
 .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:white;
   border:none;padding:13px 28px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;
   font-weight:700;font-size:.95rem;cursor:pointer;transition:all .25s;
@@ -461,7 +465,7 @@ footer{background:white;border-top:1px solid var(--border);padding:3.5rem 2rem 2
 .burger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
 .burger.open span:nth-child(2){opacity:0;}
 .burger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
-.nav-mobile{display:none;position:fixed;top:68px;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:199;padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.12);}
+.nav-mobile{display:none;position:fixed;top:calc(68px + var(--bandeau));left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:199;padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.12);}
 .nav-mobile.open{display:flex;flex-direction:column;gap:.25rem;}
 .nav-mobile .nav-btn{text-align:left;padding:12px 16px;border-radius:10px;font-size:.95rem;}
 .nav-mobile .nav-cta{margin-top:.5rem;width:100%;justify-content:center;display:flex;align-items:center;padding:13px;}
@@ -517,7 +521,6 @@ footer{background:white;border-top:1px solid var(--border);padding:3.5rem 2rem 2
   .hero-recherche{order:4;max-width:none;}
   .hero-btns{order:5;}
   .hero-stats{order:6;margin-top:2rem;margin-bottom:0;}
-  .trust-bar{order:7;}
   .pgrid{grid-template-columns:1fr 1fr;}
   .live-inner{grid-template-columns:1fr; gap:2rem;}
   .profile-grid{grid-template-columns:1fr;}
@@ -543,6 +546,7 @@ footer{background:white;border-top:1px solid var(--border);padding:3.5rem 2rem 2
 
 /* ── SMALL MOBILE (≤640px) ── */
 @media(max-width:640px){
+  :root{--bandeau:56px;}
   .nav{padding:0 1rem;height:60px;}
   .logo-name{font-size:1rem;}
   .hero{padding:88px 1rem 50px;}
@@ -583,7 +587,7 @@ footer{background:white;border-top:1px solid var(--border);padding:3.5rem 2rem 2
   .ccard-title{font-size:.88rem;}
   .pcard{padding:1.25rem;}
   .hero-img{height:240px;}
-  .nav-mobile{top:60px;}
+  .nav-mobile{top:calc(60px + var(--bandeau));}
 }
 
 /* ── TINY MOBILE (≤375px) ── */
@@ -964,9 +968,9 @@ function HeroRight(){
             <span style={{fontSize:".62rem",fontWeight:700,color:"#f97316",background:"#f9731610",padding:"2px 7px",borderRadius:5}}>2 Watts</span>
           </div>
           <div style={{fontSize:".62rem",color:"var(--text3)",marginBottom:8}}>📅 5 avr · 09h00 · Paris 11e</div>
-          <button style={{width:"100%",background:"#f97316",color:"white",border:"none",borderRadius:7,padding:"5px 0",fontSize:".65rem",fontWeight:700,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+          <div aria-hidden="true" style={{width:"100%",background:"#f97316",color:"white",borderRadius:7,padding:"5px 0",fontSize:".65rem",fontWeight:700,textAlign:"center",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
             Voir & s'inscrire →
-          </button>
+          </div>
         </div>
         {/* Card 2 — Certif */}
         <div className="fcard fc2" aria-hidden="true">
@@ -1696,7 +1700,8 @@ function EventsPage({showToast}){
               <div style={{fontWeight:800,fontSize:"1rem",color:"var(--text)",marginBottom:".3rem"}}>📣 Proposer un événement</div>
               <div style={{fontSize:".8rem",color:"var(--text2)"}}>Association, école, lycée professionnel — publiez vos événements et touchons ensemble la communauté des électriciens.</div>
             </div>
-            <button className="btn-primary" style={{whiteSpace:"nowrap"}}>Soumettre un événement →</button>
+            <button className="btn-primary" style={{whiteSpace:"nowrap"}} disabled
+              title="Dépôt d’événement non disponible pendant la phase de test">Soumettre un événement →</button>
           </div>
         </div>
       </div>
@@ -1807,6 +1812,15 @@ export default function App(){
       <style>{CSS}</style>
       <a href="#main-content" className="skip-link">Aller au contenu principal</a>
 
+      {/* ── BANDEAU PROTOTYPE ──
+          Permanent pendant la phase de test. Un bandeau qu'on ferme est un bandeau
+          qu'on oublie ; et il ne suit pas la capture d'écran, d'où les puces « Démo »
+          posées en plus sur chaque bloc simulé. */}
+      <div className="bandeau-demo" role="status">
+        <span><strong>Prototype en test</strong> — chiffres et rubriques d’illustration.</span>
+        <button onClick={()=>nav("demo")}>Ce qui marche, ce qui est simulé →</button>
+      </div>
+
       {/* ── NAV ── */}
       <header>
         <nav className="nav" role="navigation" aria-label="Navigation principale">
@@ -1872,7 +1886,9 @@ export default function App(){
                   <button className="search-btn" type="submit">Rechercher</button>
                 </form>
                 <div className="hero-stats" role="list" aria-label="Chiffres clés">
-                  {[["3 352","Personnes formées"],["109+","Formations disponibles"],["142t","CO₂ évités ↓"]].map(([n,l])=>(
+                  {[[String(COURSES.length),"Formations référencées"],
+                    [String(SOURCES.filter(s=>s.id!=="all").length),"Fabricants et organismes"],
+                    [String(REGIONS.filter(r=>r.id!=="all").length),"Régions couvertes"]].map(([n,l])=>(
                     <div key={n} className="stat-item" role="listitem">
                       <div className="stat-num" aria-label={n}>{n}</div>
                       <div className="stat-label">{l}</div>
@@ -1885,40 +1901,15 @@ export default function App(){
                 </div>
 
                 {/* TRUST INDICATORS */}
-                <div className="trust-bar" role="complementary" aria-label="Indicateurs de confiance">
-                  <div className="trust-item">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{flexShrink:0}}>
-                      <path d="M7 1L8.5 5H13L9.5 7.5L11 11.5L7 9L3 11.5L4.5 7.5L1 5H5.5Z" fill="#16a34a" stroke="#16a34a" strokeWidth="0.5" strokeLinejoin="round"/>
-                    </svg>
-                    <span><strong>85%</strong> des électriciens recommandent ce site</span>
-                  </div>
-                  <div className="trust-sep" aria-hidden="true"/>
-                  <div className="trust-item trust-trustpilot">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{flexShrink:0}}>
-                      <path d="M7 1L8.5 5H13L9.5 7.5L11 11.5L7 9L3 11.5L4.5 7.5L1 5H5.5Z" fill="#16a34a" stroke="#16a34a" strokeWidth="0.5" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="trust-excellent">Excellent</span>
-                    <span className="trust-stars" aria-label="4,5 étoiles sur 5">
-                      {[1,2,3,4].map(i=>(
-                        <span key={i} className="trust-star full" aria-hidden="true">★</span>
-                      ))}
-                      <span className="trust-star half" aria-hidden="true">★</span>
-                    </span>
-                    <svg width="72" height="18" viewBox="0 0 72 18" fill="none" aria-label="Trustpilot" role="img">
-                      <rect width="72" height="18" rx="2" fill="#00B67A"/>
-                      <text x="36" y="13" textAnchor="middle" fontFamily="system-ui,sans-serif" fontSize="8.5" fontWeight="700" fill="white" letterSpacing="0.3">Trustpilot</text>
-                    </svg>
-                  </div>
-                </div>
               </div>
               <HeroRight/>
             </div>
           </section>
 
           {/* LOGOS */}
-          <div className="logos-band" role="complementary" aria-label="Sources de contenu partenaires">
+          <div className="logos-band" role="complementary" aria-label="Fabricants et organismes référencés">
             <div className="logos-inner">
-              <span className="logos-label">Sources de contenu</span>
+              <span className="logos-label">Formations référencées</span>
               <div className="logos-sep" aria-hidden="true"/>
               <div className="logos-row">
                 {[{id:"schneider"},{id:"legrand"},{id:"hager"},{id:"siemens"},{id:"rexel"},{id:"sonepar"},{id:"ademe"},{id:"enedis"}].map(({id})=>(
@@ -2051,8 +2042,9 @@ export default function App(){
                         <div key={f} className="lfeat"><div className="lcheck" aria-hidden="true">✓</div>{f}</div>
                       ))}
                     </div>
-                    <button className="btn-primary" style={{marginTop:"1.5rem",background:"rgba(255,255,255,.2)",backdropFilter:"blur(10px)",border:"1.5px solid rgba(255,255,255,.35)"}}>
-                      📞 Demander une assistance live
+                    <button className="btn-primary" style={{marginTop:"1.5rem",background:"rgba(255,255,255,.2)",backdropFilter:"blur(10px)",border:"1.5px solid rgba(255,255,255,.35)",opacity:.6,cursor:"not-allowed"}}
+                      disabled title="Assistance live non disponible pendant la phase de test">
+                      📞 Demander une assistance live <span className="puce-demo">Démo</span>
                     </button>
                   </div>
                   <div className="terminal" role="log" aria-live="polite" aria-label="Connexion plateforme">
@@ -2140,7 +2132,8 @@ export default function App(){
                 <div className="search-row">
                   <label htmlFor="search-input" className="sr-only">Rechercher une formation</label>
                   <input id="search-input" className="search-input" placeholder="Rechercher : IRVE, PME, Wiser, TGBT, GTB, Solaire..." value={search} onChange={e=>setSearch(e.target.value)} aria-label="Rechercher une formation"/>
-                  <button className="search-btn" aria-label="Lancer la recherche">Rechercher</button>
+                  <button className="search-btn" aria-label="Aller aux résultats"
+                    onClick={()=>document.getElementById("resultats")?.scrollIntoView({behavior:"smooth",block:"start"})}>Rechercher</button>
                 </div>
                 <div className="frow" role="group" aria-label="Filtrer par thème">
                   <span className="flabel" id="theme-label">Thème</span>
@@ -2177,7 +2170,7 @@ export default function App(){
                   <div style={{fontSize:".85rem"}}>Essayez d'autres filtres ou effacez votre recherche.</div>
                 </div>
               ):(
-                <div className="grid3" role="list" aria-label="Liste des formations">
+                <div className="grid3" id="resultats" role="list" aria-label="Liste des formations">
                   {filtered.map((c,i)=>(
                     <article key={c.id} className="ccard" role="listitem" style={{animationDelay:`${i*.05}s`}}
                       onClick={()=>setSelected(c)} tabIndex={0} onKeyDown={e=>e.key==="Enter"&&setSelected(c)}
@@ -2273,7 +2266,7 @@ export default function App(){
                     <h2 className="pcard-title" style={{color:p.barColor==="var(--blue)"?"var(--blue)":p.barColor==="var(--violet)"?"var(--violet)":"var(--orange)"}}>{p.title}</h2>
                     <p className="pcard-sub">{p.sub}</p>
                     <ul className="ptopics">{p.topics.map(t=><li key={t} className="ptopic"><span className="pbullet" style={{background:p.barColor}}/>{t}</li>)}</ul>
-                    <div className="pfoot"><span className="pcount">{p.count}</span><button className="pcta" style={{background:p.barColor}}>Démarrer</button></div>
+                    <div className="pfoot"><span className="pcount">{p.count}</span><button className="pcta" style={{background:p.barColor}} onClick={()=>nav("formations")}>Voir les formations</button></div>
                   </article>
                 ))}
               </div>
@@ -2343,7 +2336,10 @@ export default function App(){
                       </button>
                     ))}
                   </div>
-                  <button className="btn-primary" style={{background:"white",color:"var(--blue)"}}>Calculer mes aides →</button>
+                  <button className="btn-primary" style={{background:"white",color:"var(--blue)",opacity:.6,cursor:"not-allowed"}}
+                    disabled title="Simulateur non disponible pendant la phase de test">Calculer mes aides →</button>
+                  <p style={{marginTop:".9rem"}}><span className="puce-demo">Démo</span>{" "}
+                    <span style={{fontSize:".78rem",color:"rgba(255,255,255,.85)"}}>Le simulateur n’est pas encore branché — les trois dispositifs ci-dessous sont réels.</span></p>
                 </div>
               </div>
               <div style={{marginTop:"3rem"}}>
@@ -2760,6 +2756,72 @@ export default function App(){
         </>
       )}
 
+      {page==="demo"&&(
+        <>
+          <PageBanner tag="Phase de test" title="Ce qui marche, ce qui est simulé"
+            sub="Inventaire honnête de la maquette. Il vous dit où votre attention est utile — et où elle ne l’est pas." showA11y/>
+          <div className="section">
+            <div className="section-inner">
+              <p style={{fontSize:".95rem",color:"var(--text2)",lineHeight:1.75,marginBottom:"2rem",maxWidth:760}}>
+                Les Éclaireurs! est un prototype en cours de test. Une partie de la plateforme
+                fonctionne réellement et lit une base de données ; une autre partie est une
+                illustration destinée à montrer l’intention. Voici la frontière exacte, pour que
+                vos retours portent sur ce qui compte plutôt que sur ce que nous savons déjà.
+              </p>
+
+              <div className="rg2" style={{gap:"2rem",alignItems:"start"}}>
+                <div>
+                  <h2 className="s-title" style={{fontSize:"1.2rem",marginBottom:"1rem"}}>✅ Ce qui fonctionne vraiment</h2>
+                  {[
+                    ["Catalogue de formations",`Les ${COURSES.length} formations, leurs thèmes, formats et régions viennent d’une vraie base de données. Les filtres et la recherche fonctionnent.`],
+                    ["Parcours pédagogiques","Les parcours et leurs contenus sont réels et lus en base."],
+                    ["Événements","Les événements affichés sont réels. L’inscription, elle, ne l’est pas encore."],
+                    ["Financement","Les trois dispositifs décrits (CPF, OPCO, aides régionales) sont réels et à jour."],
+                    ["Compte et profil","Inscription, connexion et formations enregistrées fonctionnent, et sont partagés entre le site et l’application mobile."],
+                    ["Hotline fabricants (application)","Les numéros sont les numéros de support publics réels des fabricants. Un appel part vraiment."],
+                    ["Bouton « Un retour ? »","Il enregistre réellement vos remarques. C’est lui qui alimente notre liste de corrections."],
+                  ].map(([titre,txt])=>(
+                    <div key={titre} style={{marginBottom:"1rem",paddingLeft:"1rem",borderLeft:"3px solid var(--green)"}}>
+                      <div style={{fontWeight:700,fontSize:".92rem",marginBottom:".2rem"}}>{titre}</div>
+                      <div style={{fontSize:".85rem",color:"var(--text2)",lineHeight:1.65}}>{txt}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <h2 className="s-title" style={{fontSize:"1.2rem",marginBottom:"1rem"}}>🧪 Ce qui est simulé</h2>
+                  {[
+                    ["Le forum","Les sujets et réponses affichés sont des exemples. On ne peut pas encore écrire."],
+                    ["Le réseau de pairs (application)","Les profils sont fictifs."],
+                    ["L’assistant terrain","Ce n’est pas une intelligence artificielle : il cherche des mots-clés dans le vrai catalogue."],
+                    ["Le simulateur d’aides","« Calculer mes aides » n’est pas branché."],
+                    ["Le dépôt de contenu et la proposition d’événement","Les formulaires n’envoient encore rien."],
+                    ["Les liens vers les organismes","Huit formations sur dix-huit n’ont pas encore de lien officiel : le bouton indique alors « Lien à venir »."],
+                    ["Les badges","Ils s’affichent mais ne sont pas encore attribués automatiquement."],
+                    ["« Mon Profil » sur le site","La synchronisation est faite dans l’application mobile, pas encore ici."],
+                  ].map(([titre,txt])=>(
+                    <div key={titre} style={{marginBottom:"1rem",paddingLeft:"1rem",borderLeft:"3px solid #fcd34d"}}>
+                      <div style={{fontWeight:700,fontSize:".92rem",marginBottom:".2rem"}}>{titre} <span className="puce-demo">Démo</span></div>
+                      <div style={{fontSize:".85rem",color:"var(--text2)",lineHeight:1.65}}>{txt}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bloc-demo" style={{marginTop:"2rem"}}>
+                <div style={{fontWeight:800,marginBottom:".4rem"}}>Sur les chiffres affichés</div>
+                <p style={{fontSize:".85rem",color:"var(--text2)",lineHeight:1.7,margin:0}}>
+                  Les compteurs de la page d’accueil sont calculés en direct depuis la base :
+                  ils disent ce que la plateforme contient réellement, pas ce que nous
+                  aimerions qu’elle contienne. Aucun chiffre d’usage n’est affiché, puisqu’il
+                  n’y a pas encore d’usage.
+                </p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       </main>
 
       {/* ── FOOTER ── */}
@@ -2779,14 +2841,14 @@ export default function App(){
               </div>
             </div>
             {[
-              ["Formations",["Catalogue","Niveau 1","Niveau 2","Niveau 3","Certifications"]],
-              ["Sources",["Schneider Electric","Legrand","Hager","Siemens","Rexel","Sonepar"]],
-              ["Financement",["Compte CPF","OPCO","Aides régionales","ADEME","France Compétences"]],
-            ].map(([title,links])=>(
+              ["Formations",["Catalogue","Niveau 1","Niveau 2","Niveau 3","Certifications"],"formations"],
+              ["Sources",["Schneider Electric","Legrand","Hager","Siemens","Rexel","Sonepar"],"formations"],
+              ["Financement",["Compte CPF","OPCO","Aides régionales","ADEME","France Compétences"],"financement"],
+            ].map(([title,links,cible])=>(
               <div key={title}>
                 <div className="footer-col-title">{title}</div>
                 <nav className="flinks" aria-label={`Liens ${title}`}>
-                  {links.map(l=><button key={l} className="flink">{l}</button>)}
+                  {links.map(l=><button key={l} className="flink" onClick={()=>nav(cible)}>{l}</button>)}
                 </nav>
               </div>
             ))}

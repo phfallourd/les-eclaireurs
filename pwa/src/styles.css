@@ -1476,6 +1476,18 @@ body {
 }
 
 /* ─────────── RÉSEAU DE PAIRS ─────────── */
+.bandeau-proto {
+  background: #14202e;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.45;
+  text-align: center;
+  padding: 7px 14px;
+}
+.bandeau-proto strong {
+  color: #fbbf24;
+}
+
 .demo-banner {
   background: var(--amber-light);
   border: 1px dashed #fcd34d;
