@@ -220,7 +220,31 @@
 
       const filtres = { statut: '', application: '', type: '', categorie: '', priorite: '', chantier: '' }
       let vue = 'chantiers'
+      let tri = 'priorite'
       let retours = []
+
+      const TRIS = {
+        priorite: 'Priorité',
+        auteur: 'Auteur',
+        recent: 'Date — récents d’abord',
+        ancien: 'Date — anciens d’abord',
+      }
+
+      const quand = (r) => new Date(r.created_at).getTime()
+
+      function trier(liste) {
+        const parPriorite = (a, b) =>
+          (a.priorite || 'P9').localeCompare(b.priorite || 'P9') || numero(a) - numero(b)
+        const copie = [...liste]
+        if (tri === 'auteur')
+          return copie.sort(
+            (a, b) =>
+              (a.auteur || '').localeCompare(b.auteur || '', 'fr') || parPriorite(a, b)
+          )
+        if (tri === 'recent') return copie.sort((a, b) => quand(b) - quand(a))
+        if (tri === 'ancien') return copie.sort((a, b) => quand(a) - quand(b))
+        return copie.sort(parPriorite)
+      }
 
       async function charger() {
         retours = await api('vue_retours?select=*&order=created_at.asc&limit=500')
@@ -555,6 +579,23 @@
 
       let jours = 7
 
+      /** Replie un texte à la largeur donnée, sans jamais le tronquer.
+       *  Un rapport destiné à un e-mail doit rester lisible : on coupe aux
+       *  espaces, on n'ampute pas la phrase. */
+      function plier(texte, largeur, retrait) {
+        const lignes = []
+        for (const paragraphe of String(texte).split('\n')) {
+          let courante = ''
+          for (const mot of paragraphe.split(/\s+/).filter(Boolean)) {
+            if (!courante) courante = mot
+            else if (courante.length + 1 + mot.length <= largeur) courante += ' ' + mot
+            else { lignes.push(retrait + courante); courante = mot }
+          }
+          lignes.push(retrait + courante)
+        }
+        return lignes
+      }
+
       function texteRapport() {
         const depuis = Date.now() - jours * 86400000
         const recent = (r) => new Date(r.updated_at || r.created_at).getTime() >= depuis
@@ -594,10 +635,10 @@
             )
             const vues = new Set()
             for (const r of lignes) {
-              const l = (r.reponse || '').split('\n')[0].trim()
+              const l = (r.reponse || '').trim()
               if (l && !vues.has(l)) {
                 vues.add(l)
-                L.push(`    ${l.length > 150 ? l.slice(0, 150) + '…' : l}`)
+                L.push(...plier(l, 76, '    '))
               }
             }
             L.push('')
@@ -627,14 +668,19 @@
             L.push(`${titre} (${tab.length})`)
             for (const r of tab) {
               const ref = r.id_source ? `#${r.id_source} ` : ''
-              const msg = r.message.replace(/\s+/g, ' ').trim()
-              L.push(`  ${ref}« ${msg.length > 110 ? msg.slice(0, 110) + '…' : msg} »`)
+              const msg = r.message.trim()
+              // Remarque et réponse en entier : c'est le point du document.
+              const corps = plier(`${ref}« ${msg} »`, 74, '  ')
+              L.push(...corps)
               if (avecReponse) {
-                const rep = r.reponse || '(réponse à rédiger)'
-                rep.split('\n').forEach((li) => L.push(`      → ${li}`))
+                const rep = (r.reponse || '(réponse à rédiger)').trim()
+                const reponse = plier(rep, 70, '      ')
+                reponse[0] = '    → ' + reponse[0].trimStart()
+                L.push(...reponse)
               } else if (r.priorite) {
-                L.push(`      → prévu, priorité ${r.priorite}`)
+                L.push(`    → prévu, priorité ${r.priorite}`)
               }
+              L.push('')
             }
           }
           bloc('Traité', f, true)
@@ -645,10 +691,14 @@
         L.push('')
         L.push('—')
         L.push(
-          'Priorités : P0 bloquant · P1 casse la crédibilité ou fausse le test · ' +
-            'P2 vrai défaut non bloquant · P3 hors périmètre pour l’instant.'
+          ...plier(
+            'Priorités : P0 bloquant · P1 casse la crédibilité ou fausse le test · ' +
+              'P2 vrai défaut non bloquant · P3 hors périmètre pour l’instant.',
+            76,
+            ''
+          )
         )
-        return L.join('\n')
+        return L.join('\n').replace(/\n{3,}/g, '\n\n')
       }
 
       /* ─────────── Écran ─────────── */
@@ -761,14 +811,22 @@
                      </select>
                    </div>
                  </div>
-                 <p class="doux" style="margin:0 0 12px">${listeFiltree.length} retour${
-                   listeFiltree.length > 1 ? 's' : ''
-                 } affiché${listeFiltree.length > 1 ? 's' : ''}.</p>
+                 <div class="ligne" style="margin:0 0 12px">
+                   <span class="doux">${listeFiltree.length} retour${
+                     listeFiltree.length > 1 ? 's' : ''
+                   } · trier par :</span>
+                   ${Object.entries(TRIS)
+                     .map(
+                       ([cle, lib]) =>
+                         `<button class="discret" data-tri="${cle}" aria-pressed="${
+                           tri === cle
+                         }">${lib}</button>`
+                     )
+                     .join('')}
+                 </div>
                  ${
                    listeFiltree.length
-                     ? listeFiltree
-                         .slice()
-                         .sort((a, b) => (a.priorite || 'P9').localeCompare(b.priorite || 'P9') || numero(a) - numero(b))
+                     ? trier(listeFiltree)
                          .map((r) => carteRetour(r, listeChantiers))
                          .join('')
                      : '<div class="carte doux" style="text-align:center">Aucun retour pour ce filtre.</div>'
@@ -789,6 +847,9 @@
         })
         const fc = document.getElementById('fc')
         if (fc) fc.onchange = () => { filtres.chantier = fc.value; dessiner() }
+        page.querySelectorAll('[data-tri]').forEach((b) => {
+          b.onclick = () => { tri = b.dataset.tri; dessiner() }
+        })
         page.querySelectorAll('[data-jours]').forEach((b) => {
           b.onclick = () => { jours = Number(b.dataset.jours); dessiner() }
         })
