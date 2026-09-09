@@ -2,7 +2,7 @@
  * Génère public/data/catalog.json à partir de src/data/catalog.js.
  *
  * Ce JSON est publié statiquement et consommé au runtime par la PWA mobile
- * (repo les-eclaireurs-pwa). Objectif : une seule source de vérité pour le
+ * (repo les-eclaireurs). Objectif : une seule source de vérité pour le
  * catalogue — on ajoute une formation dans src/data/catalog.js, et les deux
  * applications la voient.
  *

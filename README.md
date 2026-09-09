@@ -41,7 +41,8 @@ valeur par défaut dans le code. `VITE_SUPABASE_URL` et
 
 ## Déploiement
 
-Un dépôt, deux projets Vercel. Chaque projet définit son **Root Directory** :
+Dépôt unique : `github.com/phfallourd/les-eclaireurs`. Deux projets Vercel,
+chacun avec son **Root Directory** :
 
 | Projet Vercel        | Root Directory | Domaine                         |
 | -------------------- | -------------- | ------------------------------- |
@@ -50,3 +51,9 @@ Un dépôt, deux projets Vercel. Chaque projet définit son **Root Directory** :
 
 Chaque projet ne se redéploie que si son dossier a changé (option
 « Only build if there are changes in the Root Directory »).
+
+Les noms des projets Vercel (`les-eclaireurs-two`, `les-eclaireurs-pwa`) datent
+d'avant la réorganisation en dépôt unique. Les renommer changerait les
+domaines `.vercel.app` communiqués aux testeurs : à faire seulement après la
+phase de test, ou en posant un domaine propre.
+
