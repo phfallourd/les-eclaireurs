@@ -53,7 +53,9 @@ Chaque projet ne se redéploie que si son dossier a changé (option
 « Only build if there are changes in the Root Directory »).
 
 Les noms des projets Vercel (`les-eclaireurs-two`, `les-eclaireurs-pwa`) datent
-d'avant la réorganisation en dépôt unique. Les renommer changerait les
-domaines `.vercel.app` communiqués aux testeurs : à faire seulement après la
-phase de test, ou en posant un domaine propre.
+d'avant la réorganisation en dépôt unique. Décision du 9 septembre 2026 : on ne
+les renomme pas. Chez Vercel le nom du projet fabrique le domaine — renommer
+casse les adresses déjà diffusées et les PWA déjà installées sur les téléphones.
+La fenêtre pour changer sans coût se referme à l'envoi de la première invitation
+au panel de test.
 
