@@ -1794,3 +1794,74 @@ a.tuto-card {
 .palier-titre:first-child {
   margin-top: 4px;
 }
+
+
+/* ─────────── LECTEUR VIDÉO INTÉGRÉ (remarque 9) ─────────── */
+.lecteur-voile {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  background: rgba(15, 23, 42, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.lecteur-panneau {
+  width: 100%;
+  background: #0f172a;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  overflow: hidden;
+}
+.lecteur-tete {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 10px;
+}
+.lecteur-titre {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+}
+.lecteur-fermer {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.lecteur-cadre {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+.lecteur-cadre iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.lecteur-pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px 2px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+}
+.lecteur-lien {
+  color: #93c5fd;
+  text-decoration: none;
+  font-weight: 700;
+}

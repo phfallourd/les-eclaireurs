@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "../data/useCatalog";
 import CourseSheet from "../components/CourseSheet";
+import Lecteur, { idYouTube } from "../components/Lecteur";
 import BackRow from "../components/BackRow";
 
 const BRAND_COLORS = {
@@ -58,7 +59,7 @@ function grouperParDuree(liste) {
  * sur un chantier, c'est un clic de trop. Les formations longues gardent leur
  * fiche, où durée, niveau et prérequis comptent avant de s'engager.
  */
-const isDirect = (c) => isShort(c) && Boolean(c.url);
+const isDirect = (c) => isShort(c) && Boolean(c.url) && !idYouTube(c.url);
 
 /** Rend la carte cliquable en lien ou en bouton selon la destination. */
 function CardWrapper({ course, onOpen, children }) {
@@ -105,6 +106,7 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState("Tous");
   const [selected, setSelected] = useState(null);
+  const [video, setVideo] = useState(null);
 
   const pool = useMemo(
     () => courses.filter((c) => (mode === "videos" ? isShort(c) : !isShort(c))),
@@ -271,7 +273,11 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
           <div key={groupe.titre || "tout"}>
             {groupe.titre && <div className="palier-titre">{groupe.titre}</div>}
             {groupe.items.map((c) => (
-              <CardWrapper key={c.id} course={c} onOpen={() => setSelected(c)}>
+              <CardWrapper
+                key={c.id}
+                course={c}
+                onOpen={() => (idYouTube(c.url) ? setVideo(c) : setSelected(c))}
+              >
                 <div className="tuto-thumb" style={{ background: c.thumbBg }}>
                   <span className="tt-emoji">{c.emoji}</span>
                 </div>
@@ -292,7 +298,7 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
                   </div>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text3)" }}>
-                  {isDirect(c) ? "↗" : "›"}
+                  {idYouTube(c.url) ? "▶" : isDirect(c) ? "↗" : "›"}
                 </div>
               </CardWrapper>
             ))}
@@ -306,6 +312,8 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
           </div>
         )}
       </div>
+
+      {video && <Lecteur course={video} onClose={() => setVideo(null)} />}
 
       {selected && (
         <CourseSheet course={selected} onClose={() => setSelected(null)} />
