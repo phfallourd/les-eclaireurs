@@ -45,6 +45,9 @@ const CSS = `
 .rt-champ:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.15)}
 textarea.rt-champ{min-height:110px;resize:vertical}
 .rt-aide{margin:6px 0 0;font-size:.78rem;color:#5a6b7d}
+.rt-identite{margin:12px 0 0;padding:8px 11px;border-radius:9px;background:#eef3fd;
+  color:#1a56db;font-size:.82rem}
+.rt-identite strong{font-weight:800}
 .rt-actions{display:flex;gap:9px;margin-top:18px}
 .rt-envoyer{flex:1;min-height:46px;border:0;border-radius:10px;background:#1a56db;color:#fff;
   font:700 15px/1 inherit;cursor:pointer}
@@ -107,7 +110,17 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ouvert])
 
-  const connecte = Boolean(session())
+  /* Qui signale : c'est ce qui manquait le plus au dépouillement. Un retour
+     envoyé sans compte et sans e-mail arrive « Anonyme », et on ne peut ni
+     répondre ni recouper avec d'autres remarques de la même personne. Autant
+     que le testeur le voie avant d'envoyer. */
+  const utilisateur = session()?.user ?? null
+  const connecte = Boolean(utilisateur)
+  const nom =
+    utilisateur?.user_metadata?.nom_complet ||
+    utilisateur?.user_metadata?.full_name ||
+    utilisateur?.email ||
+    null
 
   function fermer() {
     setOuvert(false)
@@ -251,7 +264,11 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
                   required
                 />
 
-                {!connecte && (
+                {connecte ? (
+                  <p className="rt-identite">
+                    Envoyé en tant que <strong>{nom}</strong>
+                  </p>
+                ) : (
                   <>
                     <label className="rt-label" htmlFor="rt-email">
                       Votre e-mail (facultatif)
@@ -265,6 +282,10 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
                       placeholder="pour vous répondre"
                       autoComplete="email"
                     />
+                    <p className="rt-aide">
+                      Vous n’êtes pas connecté : sans e-mail, ce retour arrivera
+                      anonyme et nous ne pourrons pas vous répondre.
+                    </p>
                   </>
                 )}
 

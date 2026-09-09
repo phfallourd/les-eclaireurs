@@ -424,9 +424,11 @@
       /* ─────────── Vue par retour ─────────── */
 
       function carteRetour(r, listeChantiers) {
-        const date = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' }).format(
-          new Date(r.created_at)
-        )
+        const date = new Intl.DateTimeFormat('fr-FR', {
+          dateStyle: 'short',
+          timeStyle: 'short',
+        }).format(new Date(r.created_at))
+        const anonyme = !r.auteur || r.auteur === 'anonyme' || r.auteur === 'Anonyme'
         const divergence =
           r.priorite && r.priorite_proposee && r.priorite !== r.priorite_proposee
             ? `<span class="meta" style="margin-left:4px">proposé : ${r.priorite_proposee}</span>`
@@ -446,7 +448,11 @@
             </div>
 
             <p class="corps">${echapper(r.message)}</p>
-            <p class="meta">${echapper(r.auteur)}${r.metier ? ' · ' + echapper(r.metier) : ''}${
+            <p class="meta">${
+              anonyme
+                ? '<strong>Anonyme</strong> — envoyé sans compte ni e-mail, pas de réponse possible'
+                : echapper(r.auteur)
+            }${r.metier ? ' · ' + echapper(r.metier) : ''}${
               r.ecran ? ' · écran : ' + echapper(r.ecran) : ''
             }${r.origine !== 'bouton' ? ' · source : ' + echapper(r.origine) : ''}${
               r.priorite_demandeur ? ' · demandé en ' + echapper(r.priorite_demandeur) : ''
