@@ -71,6 +71,35 @@
       .rapport { white-space: pre-wrap; font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
         background: #fbfcfd; border: 1px solid var(--bordure); border-radius: 10px;
         padding: 14px; max-height: 62vh; overflow-y: auto; }
+      .legende-prio { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px;
+        font-size: .78rem; color: var(--doux); margin-bottom: 14px; }
+      .chiffre.alerte { border-color: var(--rouge); background: var(--rouge-f); }
+      .chiffre.alerte strong { color: var(--rouge); }
+      .chiffre span { display: block; line-height: 1.35; }
+      .rappels { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+      .rappel { border: 1px solid #fcd34d; background: #fffbeb; color: #92400e;
+        border-radius: 9px; padding: 8px 12px; font-size: .82rem; font-weight: 600; }
+      .rappel.muet { cursor: default; }
+      .tdb { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px; margin-bottom: 16px; align-items: start; }
+      .tdb-bloc { background: var(--surface); border: 1px solid var(--bordure);
+        border-radius: 12px; padding: 12px 14px; }
+      .tdb-large { grid-column: span 2; }
+      @media (max-width: 640px) { .tdb-large { grid-column: span 1; } }
+      .tdb-titre { font-size: .72rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: .05em; color: var(--doux); margin: 0 0 8px; }
+      .bar-ligne { display: grid; grid-template-columns: minmax(80px, 40%) 1fr auto;
+        align-items: center; gap: 8px; padding: 3px 0; font-size: .8rem; }
+      .bar-ligne.cliquable { cursor: pointer; border-radius: 6px; }
+      .bar-ligne.cliquable:hover { background: #f2f5fa; }
+      .bar-ligne.cliquable:focus-visible { outline: 2px solid var(--bleu); outline-offset: 1px; }
+      .bar-lib { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .bar-piste { display: flex; gap: 2px; height: 9px; min-width: 30px; }
+      .bar-ouvert { background: var(--bleu); border-radius: 3px; min-width: 0; }
+      .bar-traite { background: #cfd8e6; border-radius: 3px; min-width: 0; }
+      .bar-n { font-variant-numeric: tabular-nums; font-weight: 800; min-width: 42px;
+        text-align: right; }
+      .bar-n-sur { font-weight: 500; color: var(--doux); }
       .onglets { display: flex; gap: 7px; margin-bottom: 14px; }
       .onglets .discret { min-height: 40px; border-radius: 9px; }
       .item { display: flex; gap: 9px; align-items: baseline; padding: 6px 0;
@@ -218,7 +247,7 @@
       }
       const OUVERT = ['nouveau', 'en_cours']
 
-      const filtres = { statut: '', application: '', type: '', categorie: '', priorite: '', chantier: '' }
+      const filtres = { statut: '', application: '', type: '', categorie: '', priorite: '', chantier: '', auteur: '' }
       let vue = 'chantiers'
       let tri = 'priorite'
       let retours = []
@@ -292,7 +321,8 @@
             (!filtres.categorie || r.categorie === filtres.categorie) &&
             (!filtres.priorite ||
               (filtres.priorite === 'aucune' ? !r.priorite : r.priorite === filtres.priorite)) &&
-            (!filtres.chantier || (r.chantier || 'Sans chantier') === filtres.chantier)
+            (!filtres.chantier || (r.chantier || 'Sans chantier') === filtres.chantier) &&
+            (!filtres.auteur || (r.auteur || 'Anonyme') === filtres.auteur)
         )
       }
 
@@ -707,18 +737,82 @@
         return L.join('\n').replace(/\n{3,}/g, '\n\n')
       }
 
+      /* ─────────── Tableau de bord ───────────
+         Piloter un backlog, c'est répondre à quatre questions : qu'est-ce qui
+         brûle, combien reste-t-il, où est la masse, et qui attend une réponse.
+         Chaque barre est un filtre : on lit un chiffre, on clique, on a la
+         liste correspondante. */
+
+      const age = (r) => Math.floor((Date.now() - quand(r)) / 86400000)
+
+      /** Répartition d'une dimension, ouverts et traités, ordonnée. */
+      function repartition(liste, cle, ordre) {
+        const m = new Map()
+        for (const r of liste) {
+          const k = cle(r)
+          if (k == null) continue
+          if (!m.has(k)) m.set(k, { cle: k, ouverts: 0, traites: 0 })
+          m.get(k)[estOuvert(r) ? 'ouverts' : 'traites']++
+        }
+        const t = [...m.values()]
+        return ordre
+          ? t.sort((a, b) => ordre.indexOf(a.cle) - ordre.indexOf(b.cle))
+          : t.sort((a, b) => b.ouverts - a.ouverts || b.traites - a.traites)
+      }
+
+      /** Une ligne = un libellé, une barre proportionnelle, deux nombres.
+       *  Une seule teinte : c'est une grandeur, pas une identité. */
+      function barres(lignes, { filtre, couleurs } = {}) {
+        const max = Math.max(1, ...lignes.map((l) => l.ouverts + l.traites))
+        return lignes
+          .map((l) => {
+            const total = l.ouverts + l.traites
+            const cliquable = filtre
+              ? `data-f="${filtre}" data-v="${echapper(l.cle)}" data-saut="1" role="button" tabindex="0"`
+              : ''
+            const teinte = couleurs?.[l.cle]
+            return `
+            <div class="bar-ligne ${filtre ? 'cliquable' : ''}" ${cliquable}
+              title="${echapper(l.cle)} — ${l.ouverts} à traiter, ${l.traites} traité${
+                l.traites > 1 ? 's' : ''
+              }">
+              <span class="bar-lib">${
+                teinte ? `<span class="etiq e-${l.cle}">${echapper(l.cle)}</span>` : echapper(l.cle)
+              }</span>
+              <span class="bar-piste">
+                <span class="bar-ouvert" style="width:${(l.ouverts / max) * 100}%"></span>
+                <span class="bar-traite" style="width:${(l.traites / max) * 100}%"></span>
+              </span>
+              <span class="bar-n">${l.ouverts}<span class="bar-n-sur">/${total}</span></span>
+            </div>`
+          })
+          .join('')
+      }
+
       /* ─────────── Écran ─────────── */
 
       async function dessiner() {
         const ouverts = retours.filter(estOuvert)
         const c = {
           total: retours.length,
+          ouverts: ouverts.length,
           arbitrer: ouverts.filter((r) => !r.priorite).length,
           p0: ouverts.filter((r) => r.priorite === 'P0').length,
           p1: ouverts.filter((r) => r.priorite === 'P1').length,
           lot: ouverts.filter((r) => r.lot).length,
           traites: retours.filter((r) => r.statut === 'traite').length,
+          refuses: retours.filter((r) => r.statut === 'refuse').length,
+          sansReponse: retours.filter(
+            (r) => ['traite', 'refuse'].includes(r.statut) && !r.reponse
+          ).length,
+          recents: retours.filter(
+            (r) =>
+              ['traite', 'refuse'].includes(r.statut) &&
+              new Date(r.updated_at || r.created_at).getTime() > Date.now() - 7 * 86400000
+          ).length,
+          plusVieux: ouverts.length ? Math.max(...ouverts.map(age)) : 0,
         }
+        c.avancement = c.total ? Math.round(((c.traites + c.refuses) / c.total) * 100) : 0
         const listeChantiers = [
           ...new Set(retours.map((r) => r.chantier).filter(Boolean)),
         ].sort((a, b) => a.localeCompare(b, 'fr'))
@@ -731,7 +825,7 @@
         const listeFiltree = filtrer()
 
         page.innerHTML = `
-          <div class="entre" style="margin-bottom:14px">
+          <div class="entre" style="margin-bottom:10px">
             <div>
               <h1>Retours testeurs</h1>
               <p class="doux">${c.total} retour${c.total > 1 ? 's' : ''} — fichier de consolidation et bouton « Un retour ? » réunis</p>
@@ -739,12 +833,58 @@
             <button class="discret" id="quitter">Se déconnecter</button>
           </div>
 
+          <div class="legende-prio">
+            <span class="etiq e-P0">P0</span> bloquant, personne ne peut continuer
+            <span class="etiq e-P1">P1</span> casse la crédibilité ou fausse le test
+            <span class="etiq e-P2">P2</span> vrai défaut, non bloquant
+            <span class="etiq e-P3">P3</span> hors périmètre pour l’instant
+          </div>
+
           <div class="chiffres">
-            <div class="chiffre"><strong>${c.p0}</strong><span>P0 ouverts</span></div>
-            <div class="chiffre"><strong>${c.p1}</strong><span>P1 ouverts</span></div>
-            <div class="chiffre"><strong>${c.lot}</strong><span>dans le lot actif</span></div>
-            <div class="chiffre"><strong>${c.arbitrer}</strong><span>sans priorité</span></div>
-            <div class="chiffre"><strong>${c.traites}</strong><span>traités</span></div>
+            <div class="chiffre ${c.p0 + c.p1 ? 'alerte' : ''}"><strong>${c.p0 + c.p1}</strong><span>urgents ouverts<br>${c.p0} P0 · ${c.p1} P1</span></div>
+            <div class="chiffre"><strong>${c.ouverts}</strong><span>à traiter en tout</span></div>
+            <div class="chiffre"><strong>${c.lot}</strong><span>dans le lot du jour</span></div>
+            <div class="chiffre"><strong>${c.recents}</strong><span>clos sur 7 jours</span></div>
+            <div class="chiffre"><strong>${c.avancement}%</strong><span>du backlog clos<br>${c.traites} traité${c.traites > 1 ? 's' : ''} · ${c.refuses} écarté${c.refuses > 1 ? 's' : ''}</span></div>
+            <div class="chiffre ${c.plusVieux > 21 ? 'alerte' : ''}"><strong>${c.plusVieux} j</strong><span>le plus ancien<br>non traité</span></div>
+          </div>
+
+          ${
+            c.arbitrer || c.sansReponse
+              ? `<div class="rappels">
+                   ${c.arbitrer ? `<button class="rappel" data-f="priorite" data-v="aucune" data-saut="1">${c.arbitrer} sans priorité — à arbitrer</button>` : ''}
+                   ${c.sansReponse ? `<span class="rappel muet">${c.sansReponse} clos sans réponse au demandeur — ils sortiront vides du point hebdomadaire</span>` : ''}
+                 </div>`
+              : ''
+          }
+
+          <div class="tdb">
+            <section class="tdb-bloc">
+              <h2 class="tdb-titre">Par priorité</h2>
+              ${barres(repartition(retours, (r) => r.priorite, ['P0', 'P1', 'P2', 'P3']), {
+                filtre: 'priorite',
+                couleurs: { P0: 1, P1: 1, P2: 1, P3: 1 },
+              })}
+            </section>
+            <section class="tdb-bloc">
+              <h2 class="tdb-titre">Par nature</h2>
+              ${barres(
+                repartition(retours, (r) => (r.categorie ? LIB_CAT[r.categorie] : null)),
+                {}
+              )}
+              <h2 class="tdb-titre" style="margin-top:12px">Par cible</h2>
+              ${barres(repartition(retours, (r) => LIB_CIBLE[r.application] || r.application), {})}
+            </section>
+            <section class="tdb-bloc tdb-large">
+              <h2 class="tdb-titre">Par chantier — à traiter / total</h2>
+              ${barres(repartition(retours, (r) => r.chantier || 'Sans chantier'), {
+                filtre: 'chantier',
+              })}
+            </section>
+            <section class="tdb-bloc">
+              <h2 class="tdb-titre">Qui attend une réponse</h2>
+              ${barres(repartition(retours, (r) => r.auteur || 'Anonyme'), { filtre: 'auteur' })}
+            </section>
           </div>
 
           <div class="onglets">
@@ -801,6 +941,11 @@
                      ${Object.entries(LIB_TYPE).map(([id, l]) => bouton('type', id, l)).join('')}
                    </div>
                    <div class="ligne">
+                     ${
+                       filtres.auteur
+                         ? `<span class="doux">Auteur :</span>${bouton('auteur', '', '✕ ' + echapper(filtres.auteur))}`
+                         : ''
+                     }
                      <span class="doux">Cible :</span>
                      ${bouton('application', '', 'Toutes')}
                      ${Object.entries(LIB_CIBLE).map(([k, l]) => bouton('application', k, l)).join('')}
@@ -846,10 +991,21 @@
           }
         })
         page.querySelectorAll('[data-f]').forEach((b) => {
-          b.onclick = () => {
+          const agir = () => {
+            // Une barre du tableau de bord n'affiche pas un chiffre : elle ouvre
+            // la liste correspondante. Un bouton de filtre reste où il est.
+            if (b.dataset.saut) {
+              for (const k of Object.keys(filtres)) filtres[k] = ''
+              vue = 'retours'
+            }
             filtres[b.dataset.f] = b.dataset.v
             dessiner()
           }
+          b.onclick = agir
+          if (b.dataset.saut)
+            b.onkeydown = (e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); agir() }
+            }
         })
         const fc = document.getElementById('fc')
         if (fc) fc.onchange = () => { filtres.chantier = fc.value; dessiner() }
