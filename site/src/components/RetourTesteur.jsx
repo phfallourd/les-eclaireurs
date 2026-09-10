@@ -45,6 +45,8 @@ const CSS = `
 .rt-champ:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.15)}
 textarea.rt-champ{min-height:110px;resize:vertical}
 .rt-aide{margin:6px 0 0;font-size:.78rem;color:#5a6b7d}
+.rt-lien{background:none;border:0;padding:0;color:#1a56db;font:inherit;font-weight:700;
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .rt-identite{margin:12px 0 0;padding:8px 11px;border-radius:9px;background:#eef3fd;
   color:#1a56db;font-size:.82rem}
 .rt-identite strong{font-weight:800}
@@ -284,7 +286,20 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
                     />
                     <p className="rt-aide">
                       Vous n’êtes pas connecté : sans e-mail, ce retour arrivera
-                      anonyme et nous ne pourrons pas vous répondre.
+                      anonyme et nous ne pourrons pas vous répondre.{' '}
+                      <button
+                        type="button"
+                        className="rt-lien"
+                        onClick={() =>
+                          window.dispatchEvent(
+                            new CustomEvent('eclaireurs:compte', {
+                              detail: { onglet: 'creation' },
+                            })
+                          )
+                        }
+                      >
+                        Créer un compte
+                      </button>
                     </p>
                   </>
                 )}

@@ -1865,3 +1865,63 @@ a.tuto-card {
   text-decoration: none;
   font-weight: 700;
 }
+
+
+/* ─────────── INVITATION À CRÉER UN COMPTE ─────────── */
+.invite-compte {
+  position: relative;
+  background: #eef3fd;
+  border: 1px solid #c7d7f7;
+  border-radius: 12px;
+  padding: 11px 30px 11px 13px;
+  margin: 0 16px 10px;
+}
+.invite-texte {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.invite-texte strong {
+  font-weight: 800;
+}
+.invite-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 9px;
+  flex-wrap: wrap;
+}
+.invite-cta {
+  border: 0;
+  border-radius: 9px;
+  background: #1a56db;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+.invite-lien {
+  border: 0;
+  background: none;
+  color: #1a56db;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 0;
+}
+.invite-fermer {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 0;
+  background: none;
+  color: var(--text2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}

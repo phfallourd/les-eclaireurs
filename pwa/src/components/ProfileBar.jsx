@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useProfile, setIdentity, initials, SPECIALTIES, oublierLocalement } from "../data/profile";
 import {
   useSession,
@@ -12,6 +12,7 @@ import {
 export default function ProfileBar() {
   const profile = useProfile();
   const session = useSession();
+  const [inviteMasquee, setInviteMasquee] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(profile.name);
   const [draftSpecialty, setDraftSpecialty] = useState(profile.specialty);
@@ -24,12 +25,12 @@ export default function ProfileBar() {
   const [info, setInfo] = useState(null);
   const [enCours, setEnCours] = useState(false);
 
-  const open = () => {
+  const open = (mode = null) => {
     setDraftName(profile.name);
     setDraftSpecialty(profile.specialty);
     setErreur(null);
     setInfo(null);
-    setModeCompte(null);
+    setModeCompte(mode);
     setEditing(true);
   };
 
@@ -75,11 +76,18 @@ export default function ProfileBar() {
     setInfo("Déconnecté. Ce téléphone ne garde plus tes informations.");
   }
 
+  useEffect(() => {
+    const ouvrir = (e) =>
+      open(e.detail?.onglet === "creation" ? "inscription" : "connexion");
+    window.addEventListener("eclaireurs:compte", ouvrir);
+    return () => window.removeEventListener("eclaireurs:compte", ouvrir);
+  });
+
   const displayName = profile.name || "Identifie-toi";
 
   return (
     <>
-      <button className="profile-bar" onClick={open}>
+      <button className="profile-bar" onClick={() => open()}>
         <span className="pb-avatar">{initials(profile.name)}</span>
         <span className="pb-text">
           <span className="pb-name">{displayName}</span>
@@ -87,6 +95,41 @@ export default function ProfileBar() {
         </span>
         <span className="pb-edit">{session ? "Mon compte" : "Modifier"}</span>
       </button>
+
+      {/* On invite, on ne bloque pas : tant que la reinitialisation de mot de
+          passe ne fonctionne pas, fermer la porte a quelqu'un qui l'a oublie
+          reviendrait a le perdre pour le pilote. */}
+      {!session && !inviteMasquee && (
+        <div className="invite-compte">
+          <div className="invite-texte">
+            <strong>Vous n’avez pas encore de compte.</strong> Créez-le en trente
+            secondes : vos formations vous suivront sur le site web et sur un
+            autre téléphone, et vos retours nous parviendront signés.
+          </div>
+          <div className="invite-actions">
+            <button
+              className="invite-cta"
+              onClick={() => open("inscription")}
+            >
+              Créer mon compte
+            </button>
+            <button
+              className="invite-lien"
+              onClick={() => open("connexion")}
+            >
+              J’ai déjà un compte
+            </button>
+          </div>
+          <button
+            className="invite-fermer"
+            onClick={() => setInviteMasquee(true)}
+            aria-label="Masquer"
+            title="Masquer pour cette visite"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {editing && (
         <div

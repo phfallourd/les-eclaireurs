@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { D } from "./lib/donnees";
+import Compte, { InvitationCompte, ModaleCompte } from "./components/Compte";
 
 /* ─────────── FONTS & CSS ─────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');`;
@@ -1835,6 +1836,8 @@ export default function App(){
       <style>{CSS}</style>
       <a href="#main-content" className="skip-link">Aller au contenu principal</a>
 
+      <ModaleCompte/>
+
       {/* ── BANDEAU PROTOTYPE ──
           Permanent pendant la phase de test. Un bandeau qu'on ferme est un bandeau
           qu'on oublie ; et il ne suit pas la capture d'écran, d'où les puces « Démo »
@@ -1860,6 +1863,7 @@ export default function App(){
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
             {parcours.length>0&&<span className="nav-count" aria-live="polite">{parcours.length} formation{parcours.length>1?"s":""}</span>}
+            <Compte/>
             <button className="nav-cta" onClick={()=>nav("formations")}>Commencer</button>
             <button className={`burger ${menuOpen?"open":""}`} onClick={()=>setMenuOpen(o=>!o)} aria-expanded={menuOpen} aria-label="Menu">
               <span/><span/><span/>
@@ -1874,6 +1878,7 @@ export default function App(){
             onClick={()=>{nav(id);setMenuOpen(false);}}
             aria-current={page===id?"page":undefined}>{label}</button>
         ))}
+        <div style={{marginTop:".75rem"}} onClick={()=>setMenuOpen(false)}><Compte/></div>
         <button className="nav-cta" onClick={()=>{nav("formations");setMenuOpen(false);}}>Commencer →</button>
       </div>
 
@@ -1947,6 +1952,7 @@ export default function App(){
           {/* ANCRAGE TERRITORIAL */}
           <section className="section" style={{background:"var(--bg2)"}} aria-labelledby="territoire-title">
             <div className="section-inner">
+              <InvitationCompte/>
               <div className="rg2" style={{gap:"3rem",alignItems:"center"}}>
 
                 {/* Gauche — argumentaire */}
@@ -2568,6 +2574,7 @@ export default function App(){
           <PageBanner tag="Mon espace" title="Tableau de bord" sub="Suivez vos formations, vos badges et construisez votre parcours." showA11y/>
           <div className="section">
             <div className="section-inner">
+              <InvitationCompte/>
               <div className="profile-grid">
                 <div>
                   {/* CO2 personal impact */}
@@ -2826,7 +2833,7 @@ export default function App(){
                     ["Parcours pédagogiques","Les parcours et leurs contenus sont réels et lus en base."],
                     ["Événements","Les événements affichés sont réels. L’inscription, elle, ne l’est pas encore."],
                     ["Financement","Les trois dispositifs décrits (CPF, OPCO, aides régionales) sont réels et à jour."],
-                    ["Compte et profil","Inscription, connexion et formations enregistrées fonctionnent, et sont partagés entre le site et l’application mobile."],
+                    ["Compte et profil","Inscription et connexion fonctionnent sur le site comme dans l’application, avec le même compte. Les formations enregistrées sont synchronisées côté application ; côté site, le tableau de bord affiche encore des chiffres d’illustration."],
                     ["Hotline fabricants (application)","Les numéros sont les numéros de support publics réels des fabricants. Un appel part vraiment."],
                     ["Bouton « Un retour ? »","Il enregistre réellement vos remarques. C’est lui qui alimente notre liste de corrections."],
                   ].map(([titre,txt])=>(
