@@ -63,6 +63,9 @@
       .msg-ok { background: var(--vert-f); color: var(--vert); }
       .meta { font-size: .78rem; color: var(--doux); word-break: break-word; }
       .corps { white-space: pre-wrap; margin: 8px 0; }
+      .corps-origine { font-size: .86rem; color: var(--doux); border-left: 3px solid var(--bordure);
+        padding-left: 10px; }
+      .titre-champ { font-weight: 700; }
       details summary { cursor: pointer; font-size: .8rem; color: var(--doux); }
       dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px;
         font-size: .78rem; margin: 8px 0 0; }
@@ -261,6 +264,11 @@
 
       const quand = (r) => new Date(r.created_at).getTime()
 
+      /** Ce qu'on affiche pour désigner un retour : l'intitulé clair si
+       *  quelqu'un l'a écrit, le message brut sinon. Le message n'est jamais
+       *  remplacé en base — il reste la trace de ce que la personne a écrit. */
+      const libelle = (r) => (r.titre && r.titre.trim()) || r.message
+
       function trier(liste) {
         const parPriorite = (a, b) =>
           (a.priorite || 'P9').localeCompare(b.priorite || 'P9') || numero(a) - numero(b)
@@ -363,7 +371,9 @@
                 }
                 <span class="ref">${r.id_source ? '#' + echapper(r.id_source) : '—'}</span>
                 <span class="etiq e-${r.priorite || 'P3'}">${r.priorite || '—'}</span>
-                <span style="flex:1">${echapper(r.message.slice(0, 130))}${r.message.length > 130 ? '…' : ''}</span>
+                <span style="flex:1" title="${echapper(r.message)}">${
+                  r.titre ? '' : ''
+                }${echapper(libelle(r).slice(0, 130))}${libelle(r).length > 130 ? '…' : ''}</span>
                 <span class="etiq e-${echapper(r.statut)}">${LIB_STATUT[r.statut] ?? r.statut}</span>
               </div>`
               })
@@ -477,7 +487,13 @@
               <span class="meta">${date}</span>
             </div>
 
-            <p class="corps">${echapper(r.message)}</p>
+            <label for="t-${r.id}">Intitulé — reformulation claire, affichée partout</label>
+            <input id="t-${r.id}" class="titre-champ" data-titre
+              placeholder="Ex : le menu est inatteignable sur mobile"
+              value="${echapper(r.titre || '')}" />
+            <p class="corps ${r.titre ? 'corps-origine' : ''}">${
+              r.titre ? 'Message d’origine : ' : ''
+            }${echapper(r.message)}</p>
             <p class="meta">${
               anonyme
                 ? '<strong>Anonyme</strong> — envoyé sans compte ni e-mail, pas de réponse possible'
@@ -552,6 +568,7 @@
         const id = el.dataset.id
         const note = el.querySelector('[data-note]')
         const reponse = el.querySelector('[data-reponse]')
+        const titre = el.querySelector('[data-titre]')
         const fin = el.querySelector('[data-fin]')
         const dire = (t) => {
           fin.textContent = t
@@ -576,6 +593,18 @@
         groupe('[data-prio]', 'priorite')
         groupe('[data-cat]', 'categorie')
 
+        titre.onblur = async () => {
+          const v = titre.value.trim() || null
+          const r = retours.find((x) => x.id === id)
+          if ((r?.titre || null) === v) return
+          try {
+            await majRetour(id, { titre: v })
+            dire('Intitulé enregistré.')
+          } catch (e) {
+            dire('Échec : ' + e.message)
+          }
+        }
+
         el.querySelector('[data-chantier-sel]').onchange = async (ev) => {
           try {
             await majRetour(id, { chantier: ev.target.value || null })
@@ -595,6 +624,7 @@
                 statut: b.dataset.statut,
                 note_interne: note.value.trim() || null,
                 reponse: reponse.value.trim() || null,
+                titre: titre.value.trim() || null,
               })
               dire(
                 ['traite', 'refuse'].includes(b.dataset.statut) && !reponse.value.trim()
@@ -706,8 +736,14 @@
               const ref = r.id_source ? `#${r.id_source} ` : ''
               const msg = r.message.trim()
               // Remarque et réponse en entier : c'est le point du document.
-              const corps = plier(`${ref}« ${msg} »`, 74, '  ')
-              L.push(...corps)
+              // Quand un intitulé clair existe, il ouvre le paragraphe et les
+              // mots d'origine suivent — le destinataire doit se reconnaître.
+              if (r.titre && r.titre.trim()) {
+                L.push(...plier(`${ref}${r.titre.trim()}`, 74, '  '))
+                L.push(...plier(`Vous aviez écrit : « ${msg} »`, 70, '     '))
+              } else {
+                L.push(...plier(`${ref}« ${msg} »`, 74, '  '))
+              }
               if (avecReponse) {
                 const rep = (r.reponse || '(réponse à rédiger)').trim()
                 const reponse = plier(rep, 70, '      ')
