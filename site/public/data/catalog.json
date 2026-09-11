@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T14:35:47.249Z",
+  "generatedAt": "2026-09-11T14:37:08.199Z",
   "version": 1,
   "sources": [
     {
@@ -138,10 +138,6 @@
         {
           "t": "EcoXpert",
           "c": "cb-cert"
-        },
-        {
-          "t": "CPF",
-          "c": "cb-cpf"
         }
       ],
       "themes": [
@@ -211,10 +207,6 @@
         {
           "t": "QUALIFELEC",
           "c": "cb-cert"
-        },
-        {
-          "t": "CPF",
-          "c": "cb-cpf"
         }
       ],
       "themes": [
@@ -240,7 +232,7 @@
       "emoji": "📺",
       "thumbBg": "linear-gradient(135deg,#fee2e2,#fecaca)",
       "title": "IRVE Niveau 1 — Infrastructures de recharge pour véhicules électriques (PR0902)",
-      "desc": "Formation officielle Legrand : installation et raccordement de bornes simples pour maisons individuelles, conforme au décret n°2017-26. Éligible CPF, dossier de qualification IRVE (Qualifelec/AFNOR/Qualit'EnR).",
+      "desc": "Formation officielle Legrand : installation et raccordement de bornes simples pour maisons individuelles, conforme au décret n°2017-26.",
       "level": "Niv. 1",
       "lvlBg": "var(--green-lt)",
       "lvlColor": "var(--green)",
@@ -250,10 +242,6 @@
         {
           "t": "Qualifiant",
           "c": "cb-cert"
-        },
-        {
-          "t": "CPF",
-          "c": "cb-cpf"
         }
       ],
       "themes": [
@@ -288,10 +276,6 @@
         {
           "t": "EcoXpert",
           "c": "cb-cert"
-        },
-        {
-          "t": "CPF",
-          "c": "cb-cpf"
         }
       ],
       "themes": [
@@ -646,10 +630,6 @@
         {
           "t": "EcoXpert",
           "c": "cb-cert"
-        },
-        {
-          "t": "CPF",
-          "c": "cb-cpf"
         }
       ],
       "themes": [

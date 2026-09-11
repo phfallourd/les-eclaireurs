@@ -2,7 +2,9 @@
    CATALOGUE — SOURCE UNIQUE DE VÉRITÉ
    Ce fichier alimente à la fois le site web (App.jsx) et la PWA
    mobile, qui consomme public/data/catalog.json généré au build.
-   → Pour ajouter/modifier une formation, c'est ICI et nulle part ailleurs.
+   → INSTANTANÉ DE SECOURS : régénéré par scripts/sync-catalog.mjs depuis
+     Supabase à chaque build. Pour ajouter ou modifier une formation, passez
+     par l'écran /admin-catalogue.html, pas par ce fichier.
    ───────────────────────────────────────────────────────────── */
 
 export const SOURCES=[
@@ -37,7 +39,7 @@ export const COURSES=[
     title:"TGBT Intelligent — PowerTags & Smartlink",
     desc:"Configurer un tableau général basse tension intelligent avec capteurs PowerTags pour la supervision énergétique en tertiaire.",
     level:"Niv. 2",lvlBg:"var(--blue-lt)",lvlColor:"var(--blue)",
-    duration:"3h30",format:"Blended",badges:[{t:"EcoXpert",c:"cb-cert"},{t:"CPF",c:"cb-cpf"}],
+    duration:"3h30",format:"Blended",badges:[{t:"EcoXpert",c:"cb-cert"}],
     themes:["TGBT Intelligent","Efficacité énergie"],regions:["idf","ara","hdf"],
     objectives:["Câbler et configurer PowerTags SE sur un TGBT","Paramétrer la communication Smartlink","Connecter au logiciel PME pour la supervision","Analyser les données de consommation en temps réel"]},
   {id:2,source:"schneider",sourceLabel:"Schneider Electric",sourceColor:"#3db83d",
@@ -53,15 +55,15 @@ export const COURSES=[
     title:"Installation Photovoltaïque — Certification QUALIFELEC",
     desc:"Formation complète dimensionnement, installation et mise en service d'une installation solaire résidentielle et tertiaire.",
     level:"Niv. 2",lvlBg:"var(--blue-lt)",lvlColor:"var(--blue)",
-    duration:"5 jours",format:"Présentiel",badges:[{t:"QUALIFELEC",c:"cb-cert"},{t:"CPF",c:"cb-cpf"}],
+    duration:"5 jours",format:"Présentiel",badges:[{t:"QUALIFELEC",c:"cb-cert"}],
     themes:["Solaire PV"],regions:["paca","occ","naq"],
     objectives:["Dimensionner un système PV","Maîtriser les raccordements AC/DC","Configurer onduleur et monitoring","Réaliser les démarches administratives"]},
   {id:4,source:"legrand",sourceLabel:"Legrand",sourceColor:"#e2001a",
     emoji:"📺",thumbBg:"linear-gradient(135deg,#fee2e2,#fecaca)",
     title:"IRVE Niveau 1 — Infrastructures de recharge pour véhicules électriques (PR0902)",
-    desc:"Formation officielle Legrand : installation et raccordement de bornes simples pour maisons individuelles, conforme au décret n°2017-26. Éligible CPF, dossier de qualification IRVE (Qualifelec/AFNOR/Qualit'EnR).",
+    desc:"Formation officielle Legrand : installation et raccordement de bornes simples pour maisons individuelles, conforme au décret n°2017-26.",
     level:"Niv. 1",lvlBg:"var(--green-lt)",lvlColor:"var(--green)",
-    duration:"1 jour (7h)",format:"Présentiel",badges:[{t:"Qualifiant",c:"cb-cert"},{t:"CPF",c:"cb-cpf"}],
+    duration:"1 jour (7h)",format:"Présentiel",badges:[{t:"Qualifiant",c:"cb-cert"}],
     themes:["IRVE"],regions:["all"],
     url:"https://www.legrand.fr/pro/formations/recharge-pour-vehicules-electriques-efficacite-energetique/formation-legrand-infrastructures-de-recharge-pour-vehicules-electriques-irve-niveau-1-902",
     objectives:["Normes NF C 15-100 IRVE","Choix de la bonne borne","Câblage et sécurisation","Mise en service et test"]},
@@ -70,7 +72,7 @@ export const COURSES=[
     title:"IRVEP1 — Infrastructure de bornes de charge résidentielles",
     desc:"Formation officielle Schneider Electric (Training Institute) : installation de bornes non communicantes, certification IRVE et EV/ZE Ready 1.4 niveau P1.",
     level:"Niv. 1",lvlBg:"var(--green-lt)",lvlColor:"var(--green)",
-    duration:"1 jour (7h)",format:"Présentiel",badges:[{t:"EcoXpert",c:"cb-cert"},{t:"CPF",c:"cb-cpf"}],
+    duration:"1 jour (7h)",format:"Présentiel",badges:[{t:"EcoXpert",c:"cb-cert"}],
     themes:["IRVE"],regions:["all"],
     url:"https://www.se.com/fr/fr/work/services/formation/vehicules-electriques/irvep1.html",
     objectives:["Réglementation décret n°2017-26","Installation borne non communicante","Obtenir la certification IRVE","Préparer le niveau P2 (IRVEQ2)"]},
@@ -159,7 +161,7 @@ export const COURSES=[
     title:"Power Monitoring Expert — Cas Boulangerie",
     desc:"Déployer PME pour surveiller et optimiser la consommation d'une boulangerie avec TGBT intelligent.",
     level:"Niv. 2",lvlBg:"var(--blue-lt)",lvlColor:"var(--blue)",
-    duration:"4h",format:"Blended",badges:[{t:"EcoXpert",c:"cb-cert"},{t:"CPF",c:"cb-cpf"}],
+    duration:"4h",format:"Blended",badges:[{t:"EcoXpert",c:"cb-cert"}],
     themes:["PME Supervision","TGBT Intelligent","Efficacité énergie"],regions:["idf","pdl","hdf"],
     objectives:["Déployer EcoStruxure Power Monitoring","Créer tableaux de bord énergie","Paramétrer alertes de surconsommation","Générer rapports réglementaires"]},
   {id:7,source:"legrand",sourceLabel:"Legrand",sourceColor:"#e05a0c",

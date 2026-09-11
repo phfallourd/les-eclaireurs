@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "prebuild": "node scripts/build-catalog.mjs",
+    "prebuild": "node scripts/sync-catalog.mjs && node scripts/build-catalog.mjs",
+    "sync-catalog": "node scripts/sync-catalog.mjs",
     "catalog": "node scripts/build-catalog.mjs"
   },
   "dependencies": {
