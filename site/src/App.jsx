@@ -298,6 +298,21 @@ a.skip-link:focus{top:1rem;}
 .ptopics{list-style:none;display:flex;flex-direction:column;gap:.4rem;}
 .ptopic{display:flex;align-items:center;gap:8px;font-size:.77rem;color:var(--text2);}
 .pbullet{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.petapes{list-style:none;display:flex;flex-direction:column;gap:.7rem;margin-top:.25rem;}
+.petape{display:flex;gap:10px;align-items:flex-start;}
+.petape-n{flex-shrink:0;width:22px;height:22px;border-radius:50%;color:white;font-size:.68rem;
+  font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.petape-corps{flex:1;min-width:0;}
+.petape-titre{font-size:.82rem;font-weight:700;color:var(--text);line-height:1.35;}
+.petape-desc{font-size:.74rem;color:var(--text2);line-height:1.5;margin-top:2px;}
+.petape-form{font-size:.72rem;color:var(--text2);margin-top:4px;display:flex;flex-wrap:wrap;
+  gap:4px 10px;align-items:baseline;}
+.petape-org{font-weight:700;color:var(--text);}
+.petape-lien{color:var(--blue);text-decoration:none;font-weight:600;}
+.petape-lien:hover{text-decoration:underline;}
+.petape-jalon{font-size:.7rem;color:var(--text3);font-style:italic;margin-top:3px;}
+.petape-option{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--text3);border:1px solid var(--border);border-radius:var(--rf);padding:1px 6px;}
 .pfoot{display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);}
 .pcount{font-family:'DM Mono',monospace;font-size:.64rem;color:var(--text2);}
 .pcta{background:var(--blue);color:white;border:none;padding:7px 18px;border-radius:8px;
@@ -2037,8 +2052,8 @@ export default function App(){
             <div className="section-inner">
               <div className="section-head">
                 <div className="s-chip" aria-hidden="true">Parcours pédagogiques</div>
-                <h2 id="parcours-title" className="s-title">4 niveaux de maîtrise</h2>
-                <p className="s-desc">De la reconversion au terrain, jusqu'à l'expertise numérique — un parcours structuré pour chaque profil.</p>
+                <h2 id="parcours-title" className="s-title">Des parcours, pas une liste de formations</h2>
+                <p className="s-desc">Chaque parcours enchaîne des formations réelles, dans l'ordre où elles se suivent — avec les prérequis exigés à l'entrée.</p>
               </div>
 
               {/* Teaser sas reconversion */}
@@ -2290,7 +2305,7 @@ export default function App(){
       {/* ══════════ PARCOURS ══════════ */}
       {page==="parcours"&&(
         <>
-          <PageBanner tag="Parcours métiers" title="4 niveaux de maîtrise" sub="De la reconversion aux technologies avancées — un chemin structuré pour chaque profil." showA11y/>
+          <PageBanner tag="Parcours métiers" title="Des parcours, pas une liste de formations" sub="Chaque étape renvoie à une formation réelle, vérifiée, chez un organisme identifié — et signale les prérequis que le catalogue ne couvre pas encore." showA11y/>
           <div className="section">
             <div className="section-inner">
 
@@ -2347,7 +2362,40 @@ export default function App(){
                     <div className="pcard-ico" style={{background:p.iconBg}}>{p.icon}</div>
                     <h2 className="pcard-title" style={{color:p.barColor==="var(--blue)"?"var(--blue)":p.barColor==="var(--violet)"?"var(--violet)":"var(--orange)"}}>{p.title}</h2>
                     <p className="pcard-sub">{p.sub}</p>
-                    <ul className="ptopics">{p.topics.map(t=><li key={t} className="ptopic"><span className="pbullet" style={{background:p.barColor}}/>{t}</li>)}</ul>
+                    {p.etapes?.length>0?(
+                      /* Les etapes reelles du parcours : chacune renvoie vers une
+                         formation du catalogue, ou signale un prerequis que le
+                         catalogue ne couvre pas encore. */
+                      <ol className="petapes">
+                        {p.etapes.map(e=>(
+                          <li key={e.ordre} className="petape">
+                            <span className="petape-n" style={{background:p.barColor}}>{e.ordre}</span>
+                            <div className="petape-corps">
+                              <div className="petape-titre">
+                                {e.titre}{!e.obligatoire&&<> <span className="petape-option">option</span></>}
+                              </div>
+                              {e.description&&<div className="petape-desc">{e.description}</div>}
+                              {e.formation?(
+                                <div className="petape-form">
+                                  <span className="petape-org">{e.formation.organisme}</span>
+                                  {e.formation.duree&&<span>{e.formation.duree}</span>}
+                                  {e.formation.prix!=null&&<span>{Math.round(e.formation.prix)} €</span>}
+                                  {e.formation.url&&(
+                                    <a className="petape-lien" href={e.formation.url} target="_blank" rel="noopener noreferrer">
+                                      Voir la formation ↗
+                                    </a>
+                                  )}
+                                </div>
+                              ):(
+                                <div className="petape-jalon">Aucune formation encore référencée pour cette étape.</div>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    ):(
+                      <ul className="ptopics">{p.topics.map(t=><li key={t} className="ptopic"><span className="pbullet" style={{background:p.barColor}}/>{t}</li>)}</ul>
+                    )}
                     <div className="pfoot"><span className="pcount">{p.count}</span><button className="pcta" style={{background:p.barColor}} onClick={()=>nav("formations")}>Voir les formations</button></div>
                   </article>
                 ))}

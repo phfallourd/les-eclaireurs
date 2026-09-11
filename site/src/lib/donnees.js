@@ -71,8 +71,13 @@ async function chargerCatalogue() {
 }
 
 async function chargerParcours() {
+  /* Les etapes viennent avec le parcours : un parcours sans etapes n'est qu'une
+     promesse, et c'est exactement ce que le site affichait jusqu'ici. */
   const data = await pg('parcours', {
-    select: 'numero,titre,sous_titre,icone,couleur,couleur_fond,themes_abordes,resume_libelle',
+    select:
+      'numero,titre,sous_titre,icone,couleur,couleur_fond,themes_abordes,resume_libelle,' +
+      'parcours_etapes(ordre,titre,description,obligatoire,' +
+      'formations(id,titre,duree_libelle,prix_eur,url_source,organisations(nom)))',
     statut: 'eq.publiee',
     numero: 'not.is.null',
     order: 'numero',
@@ -87,6 +92,27 @@ async function chargerParcours() {
     sub: p.sous_titre,
     topics: p.themes_abordes ?? [],
     count: p.resume_libelle,
+    etapes: (p.parcours_etapes ?? [])
+      .slice()
+      .sort((a, b) => a.ordre - b.ordre)
+      .map((e) => ({
+        ordre: e.ordre,
+        titre: e.titre,
+        description: e.description,
+        obligatoire: e.obligatoire,
+        // Une etape peut n'etre qu'un jalon : un prerequis qu'aucune formation
+        // du catalogue ne couvre encore. On l'affiche comme tel.
+        formation: e.formations
+          ? {
+              id: e.formations.id,
+              titre: e.formations.titre,
+              duree: e.formations.duree_libelle,
+              prix: e.formations.prix_eur,
+              url: e.formations.url_source,
+              organisme: e.formations.organisations?.nom,
+            }
+          : null,
+      })),
   }))
 }
 
