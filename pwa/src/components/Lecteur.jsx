@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Lecteur vidéo intégré (remarque 9).
@@ -11,6 +11,12 @@ import { useEffect } from "react";
  * cookie de suivi tant que la lecture n'a pas démarré. C'est le minimum quand
  * la vidéo s'affiche dans notre interface et non plus chez eux — et cela
  * devra figurer dans la politique de confidentialité avant le pilote réel.
+ *
+ * Le lecteur occupe tout l'écran, et non plus un cadre en bas de page : une
+ * vidéo de geste technique regardée sur un chantier doit être grande. On
+ * demande le plein écran natif et le passage en paysage ; les deux peuvent
+ * être refusés selon le navigateur, d'où la mise en page qui remplit déjà
+ * l'écran par elle-même.
  */
 
 /** Identifiant d'une vidéo YouTube, quelle que soit la forme de l'adresse. */
@@ -24,11 +30,37 @@ export function idYouTube(url = "") {
 export default function Lecteur({ course, onClose }) {
   const id = idYouTube(course?.url);
 
+  const panneau = useRef(null);
+
   useEffect(() => {
     const auClavier = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", auClavier);
     return () => window.removeEventListener("keydown", auClavier);
   }, [onClose]);
+
+  useEffect(() => {
+    if (!id) return;
+    const el = panneau.current;
+    let actif = true;
+    (async () => {
+      try {
+        await el?.requestFullscreen?.();
+        if (actif) await screen.orientation?.lock?.("landscape");
+      } catch {
+        // Refusé (iOS, navigateur de bureau, geste non reconnu) : tant pis,
+        // la mise en page remplit déjà l'écran.
+      }
+    })();
+    return () => {
+      actif = false;
+      try {
+        screen.orientation?.unlock?.();
+        if (document.fullscreenElement) document.exitFullscreen?.();
+      } catch {
+        /* rien à faire */
+      }
+    };
+  }, [id]);
 
   if (!id) return null;
 
@@ -40,7 +72,7 @@ export default function Lecteur({ course, onClose }) {
       aria-label={course.title}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="lecteur-panneau">
+      <div className="lecteur-panneau" ref={panneau}>
         <div className="lecteur-tete">
           <div className="lecteur-titre">{course.title}</div>
           <button className="lecteur-fermer" onClick={onClose} aria-label="Fermer">

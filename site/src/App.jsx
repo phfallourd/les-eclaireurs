@@ -1857,7 +1857,7 @@ export default function App(){
             <div className="logo-name">Les <span>Éclaireurs!</span></div>
           </button>
           <nav className="nav-links" aria-label="Menu principal">
-            {[["formations","Formations"],["parcours","Parcours"],["financement","Financement"],["forum","Communauté"],["profil","Mon Profil"]].map(([id,label])=>(
+            {[["accueil","Accueil"],["formations","Formations"],["parcours","Parcours"],["financement","Financement"],["forum","Réseau de pairs"],["profil","Mon Profil"]].map(([id,label])=>(
               <button key={id} className={`nav-btn ${page===id?"active":""}`} onClick={()=>nav(id)} aria-current={page===id?"page":undefined}>{label}</button>
             ))}
           </nav>
@@ -1873,7 +1873,7 @@ export default function App(){
       </header>
       {/* Mobile nav */}
       <div className={`nav-mobile ${menuOpen?"open":""}`} aria-hidden={!menuOpen}>
-        {[["accueil","Accueil 🏠"],["formations","Formations 📚"],["parcours","Parcours 🎯"],["forum","Communauté 💬"],["evenements","📅 Événements"],["financement","Financement 💰"],["depot","📤 Déposer"],["about","ℹ️ À propos"],["profil","Mon Profil 👤"]].map(([id,label])=>(
+        {[["accueil","Accueil 🏠"],["formations","Formations 📚"],["parcours","Parcours 🎯"],["forum","Réseau de pairs 💬"],["evenements","📅 Événements"],["financement","Financement 💰"],["depot","📤 Déposer"],["about","ℹ️ À propos"],["profil","Mon Profil 👤"]].map(([id,label])=>(
           <button key={id} className={`nav-btn ${page===id?"active":""}`}
             onClick={()=>{nav(id);setMenuOpen(false);}}
             aria-current={page===id?"page":undefined}>{label}</button>
@@ -2464,13 +2464,13 @@ export default function App(){
       {/* ══════════ FORUM ══════════ */}
       {page==="forum"&&(
         <>
-          <PageBanner tag="Communauté" title="Forum des Éclaireurs!" sub="Posez vos questions, partagez vos bonnes pratiques, aidez vos confrères électriciens." showA11y/>
+          <PageBanner tag="Réseau de pairs" title="Forum des Éclaireurs!" sub="Posez vos questions, partagez vos bonnes pratiques, aidez vos confrères électriciens." showA11y/>
           <div className="section">
             <div className="section-inner">
               <CommunityIllo/>
-              {/* Événements et Dépôt ne sont plus dans la barre de navigation (retour 25) :
+              {/* Événements et Dépôt ne sont pas dans la barre de navigation (retour 25) :
                   ils restent accessibles ici, dans la rubrique dont ils relèvent. */}
-              <div className="ligne-liens" role="navigation" aria-label="Autres espaces de la communauté">
+              <div className="ligne-liens" role="navigation" aria-label="Autres espaces du réseau de pairs">
                 <button className="btn-secondary" onClick={()=>nav("evenements")}>📅 Événements de la filière</button>
                 <button className="btn-secondary" onClick={()=>nav("depot")}>📤 Déposer un contenu</button>
                 <button className="btn-secondary" onClick={()=>nav("about")}>ℹ️ À propos</button>

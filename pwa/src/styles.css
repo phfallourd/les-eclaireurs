@@ -387,13 +387,15 @@ body {
   font-family: inherit;
 }
 
+/* Les thèmes défilaient horizontalement sans barre de défilement visible :
+   tout ce qui dépassait à droite était invisible et personne ne pensait à
+   balayer. Ils passent donc à la ligne — rien ne se cache plus. */
 .pills {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
   padding-bottom: 4px;
   margin-bottom: 10px;
-  scrollbar-width: none;
 }
 
 .pills::-webkit-scrollbar {
@@ -572,7 +574,9 @@ body {
   background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: flex-end;
-  z-index: 50;
+  /* Au-dessus de la barre de navigation, qui masquait le bouton d'action de
+     la fiche formation. */
+  z-index: 200;
   animation: fade 0.18s ease;
 }
 
@@ -588,7 +592,9 @@ body {
 .sheet {
   width: min(390px, 100vw);
   margin: 0 auto;
-  max-height: 88vh;
+  /* dvh et non vh : sur mobile, vh inclut la zone masquée par la barre
+     d'adresse, ce qui poussait le bouton d'action hors de l'écran. */
+  max-height: 88dvh;
   background: var(--surface);
   border-radius: 20px 20px 0 0;
   display: flex;
@@ -1801,16 +1807,17 @@ a.tuto-card {
   position: fixed;
   inset: 0;
   z-index: 9997;
-  background: rgba(15, 23, 42, 0.72);
+  background: #000;
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: center;
 }
 .lecteur-panneau {
   width: 100%;
-  background: #0f172a;
-  border-radius: 16px 16px 0 0;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   overflow: hidden;
 }
 .lecteur-tete {
@@ -1840,8 +1847,9 @@ a.tuto-card {
 }
 .lecteur-cadre {
   position: relative;
+  flex: 1;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  min-height: 0;
   background: #000;
 }
 .lecteur-cadre iframe {
