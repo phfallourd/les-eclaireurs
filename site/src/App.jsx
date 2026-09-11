@@ -219,8 +219,9 @@ a.skip-link:focus{top:1rem;}
   overflow:hidden;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:pointer;
   animation:fadeUp .5s ease both;}
 .ccard:hover{transform:translateY(-6px);box-shadow:var(--sh-xl);border-color:var(--blue-md);}
-.ccard-thumb{height:148px;display:flex;align-items:center;justify-content:center;
+.ccard-thumb{height:104px;display:flex;align-items:center;justify-content:center;
   font-size:3rem;position:relative;overflow:hidden;}
+.thumb-svg{width:44px;height:44px;opacity:.85;}
 .ccard-thumb-badge{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.95);
   border-radius:var(--rf);padding:4px 10px;font-size:.62rem;font-weight:700;
   display:flex;align-items:center;gap:5px;box-shadow:var(--sh);}
@@ -267,9 +268,9 @@ a.skip-link:focus{top:1rem;}
   font-size:.72rem;font-weight:500;cursor:pointer;transition:all .2s;background:none;white-space:nowrap;}
 .fchip:hover{border-color:var(--blue);color:var(--blue);}
 .fchip.active{background:var(--blue);border-color:var(--blue);color:white;font-weight:700;}
-.ccard-thumb-pro{display:flex;align-items:center;justify-content:center;
-  background-image:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));}
-.ccard-thumb-pro img{max-width:62%;max-height:46px;object-fit:contain;}
+.ccard-thumb-pro{display:flex;align-items:center;justify-content:center;}
+.ccard-thumb-pro .ccard-thumb-badge{top:8px;left:8px;padding:3px 7px;}
+.ccard-thumb-pro .ccard-thumb-badge img{max-height:11px;width:auto;}
 .src-chips{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.5rem;}
 .sc-n,.fchip-n{font-size:.66rem;font-weight:800;opacity:.6;font-variant-numeric:tabular-nums;}
 .legende-niveaux{display:flex;flex-wrap:wrap;gap:.2rem 1rem;align-items:baseline;
@@ -856,6 +857,29 @@ const NIVEAUX = {
   "Niv. 1-3": "Parcours progressif, du débutant à l'expert",
 };
 const sensNiveau = (n) => NIVEAUX[n] || "";
+
+/* Illustration par thème plutôt que logo du fournisseur : ce qu'on cherche dans
+   un catalogue, c'est le sujet, pas la marque (retour de Paul-Henry du 11/09).
+   Des formes dessinées en SVG, donc aucun fichier à héberger, aucune photo à
+   acheter, et un registre plus sobre que les emojis sur fond pastel. */
+const THEME_VISUEL = {
+  "IRVE":            {c:"#1a56db", d:"M7 3h7l-2 6h4l-8 12 2-8H6z"},
+  "PAC":             {c:"#0891b2", d:"M12 3a5 5 0 0 1 5 5c0 2-1 3-1 5a4 4 0 1 1-8 0c0-2-1-3-1-5a5 5 0 0 1 5-5z"},
+  "Solaire":         {c:"#f59e0b", d:"M12 6a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 1v2M12 21v2M3 12H1M23 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"},
+  "TGBT":            {c:"#7c3aed", d:"M4 4h16v5H4zM4 11h7v9H4zM13 11h7v9h-7z"},
+  "GTB":             {c:"#0f766e", d:"M4 20V9l8-5 8 5v11zM9 20v-6h6v6"},
+  "Domotique":       {c:"#db2777", d:"M5 19V8l7-4 7 4v11zM10 19v-5h4v5M12 9v2"},
+  "Efficacité":      {c:"#16a34a", d:"M4 18h4V9H4zM10 18h4V4h-4zM16 18h4v-6h-4z"},
+  "IoT":             {c:"#0284c7", d:"M12 18a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM8 14a6 6 0 0 1 8 0M5 10a11 11 0 0 1 14 0"},
+  "PME":             {c:"#475569", d:"M4 19h16M6 19V9l6-4 6 4v10M10 19v-4h4v4"},
+};
+/** Le premier thème d'une formation détermine son illustration. */
+function visuelDe(course) {
+  const cle = Object.keys(THEME_VISUEL).find((k) =>
+    (course.themes || []).some((t) => t.toLowerCase().startsWith(k.toLowerCase()))
+  );
+  return THEME_VISUEL[cle] || {c:"#64748b", d:"M4 12h16M12 4v16"};
+}
 /* Contenu chargé depuis Supabase avant le rendu (voir lib/donnees.js). */
 const PARCOURS = D.parcours;
 const FINANCEMENT = D.financement;
@@ -2228,14 +2252,17 @@ export default function App(){
                     <article key={c.id} className="ccard" role="listitem" style={{animationDelay:`${i*.05}s`}}
                       onClick={()=>setSelected(c)} tabIndex={0} onKeyDown={e=>e.key==="Enter"&&setSelected(c)}
                       aria-label={`Formation : ${c.title}`}>
-                      {/* Un aplat sobre au logo du fournisseur plutôt qu'une vignette
-                          emoji : la page s'adresse à des professionnels (remarque 27).
-                          L'emoji reste en repli quand la marque n'a pas de logo. */}
-                      <div className="ccard-thumb ccard-thumb-pro" style={{background:c.thumbBg}} aria-hidden="true">
-                        {LOGOS[c.source]
-                          ? <Logo id={c.source} h={40}/>
-                          : <span style={{fontSize:"2.4rem"}}>{c.emoji}</span>}
-                      </div>
+                      {/* Le bandeau illustre le thème ; le fournisseur passe en petit
+                          dans un coin. On y gagne aussi de la hauteur au profit de
+                          l'information (retours 27 puis Paul-Henry du 11/09). */}
+                      {(()=>{const v=visuelDe(c);return(
+                      <div className="ccard-thumb ccard-thumb-pro" style={{background:`${v.c}14`}} aria-hidden="true">
+                        <svg viewBox="0 0 24 24" className="thumb-svg" fill="none"
+                          stroke={v.c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                          <path d={v.d}/>
+                        </svg>
+                        <div className="ccard-thumb-badge"><Logo id={c.source} h={11}/></div>
+                      </div>);})()}
                       <div className="ccard-body">
                         <div className="ccard-source-row">
                           <div className="source-mini"><Logo id={c.source} h={14}/></div>
@@ -2577,11 +2604,14 @@ export default function App(){
               <InvitationCompte/>
               <div className="profile-grid">
                 <div>
-                  {/* CO2 personal impact */}
+                  {/* CO2 personal impact — chiffres d'illustration : maintenant qu'un
+                      compte existe vraiment, un électricien connecté les lirait comme
+                      les siens s'ils n'étaient pas marqués (retour R8). */}
                   <div className="co2-profile" style={{marginBottom:"1rem"}}>
                     <div className="co2-profile-inner">
                       <div className="co2-profile-title">
                         <span>🌱</span> Ma contribution CO₂
+                        <span className="puce-demo" style={{marginLeft:".5rem"}}>Démo</span>
                       </div>
                       <div className="co2-big">2<span>t CO₂</span></div>
                       <div className="co2-equiv">≈ 12 000 km en voiture évités</div>

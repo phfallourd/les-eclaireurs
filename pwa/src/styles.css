@@ -574,6 +574,7 @@ body {
   background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: flex-end;
+  height: 100dvh;
   /* Au-dessus de la barre de navigation, qui masquait le bouton d'action de
      la fiche formation. */
   z-index: 200;
@@ -730,7 +731,7 @@ body {
 
 .sheet-actions {
   flex-shrink: 0;
-  padding: 12px 18px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  padding: 12px 18px calc(max(env(safe-area-inset-bottom, 0px), 18px) + 14px);
   border-top: 1px solid var(--border);
   display: flex;
   gap: 8px;
@@ -907,7 +908,7 @@ body {
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
-  padding: 6px 0 calc(env(safe-area-inset-bottom, 0px) + 6px);
+  padding: 6px 0 calc(max(env(safe-area-inset-bottom, 0px), 10px) + 6px);
   /* Au-dessus du contenu : la barre de saisie collante de l'assistant
      recouvrait les boutons et interceptait les appuis. */
   position: relative;
@@ -1817,7 +1818,7 @@ a.tuto-card {
   background: #000;
   display: flex;
   flex-direction: column;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
   overflow: hidden;
 }
 .lecteur-tete {
