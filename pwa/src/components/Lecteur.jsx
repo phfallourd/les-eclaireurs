@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { fenetreOuverte } from "../lib/modale";
 
 /**
  * Lecteur vidéo intégré (remarque 9).
@@ -31,6 +32,9 @@ export default function Lecteur({ course, onClose }) {
   const id = idYouTube(course?.url);
 
   const panneau = useRef(null);
+
+  // Le bouton flottant « Un retour ? » passait par-dessus la barre du lecteur.
+  useEffect(fenetreOuverte, []);
 
   useEffect(() => {
     const auClavier = (e) => e.key === "Escape" && onClose();

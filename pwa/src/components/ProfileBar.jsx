@@ -8,6 +8,7 @@ import {
   motDePasseOublie,
   emailUtilisateur,
 } from "../data/compte";
+import { fenetreOuverte } from "../lib/modale";
 
 export default function ProfileBar() {
   const profile = useProfile();
@@ -78,6 +79,10 @@ export default function ProfileBar() {
     setInfo("Déconnecté. Ce téléphone ne garde plus tes informations.");
   }
 
+  // Même règle que la fiche formation : pas de bouton flottant par-dessus les
+  // commandes de la fenêtre tant qu'elle est ouverte.
+  useEffect(() => (editing ? fenetreOuverte() : undefined), [editing]);
+
   useEffect(() => {
     const ouvrir = (e) =>
       open(e.detail?.onglet === "creation" ? "inscription" : "connexion");
@@ -141,11 +146,18 @@ export default function ProfileBar() {
           className="sheet-overlay"
           onClick={(e) => e.target === e.currentTarget && setEditing(false)}
         >
-          <div className="sheet" role="dialog" aria-modal="true">
-            <div className="sheet-grip" />
+          <div className="sheet" role="dialog" aria-modal="true" aria-label="Mon profil">
+            <div className="sheet-barre">
+              <span className="sheet-barre-titre">Mon profil</span>
+              <button
+                className="sheet-x"
+                onClick={() => setEditing(false)}
+                aria-label="Fermer"
+              >
+                ✕
+              </button>
+            </div>
             <div className="sheet-body">
-              <h2 className="sheet-title">Mon profil</h2>
-
               <label className="field-label" htmlFor="pname">
                 Nom
               </label>
@@ -175,12 +187,12 @@ export default function ProfileBar() {
               </select>
 
               {/* Échelle reprise de la base, pas inventée ici (retour 3). */}
-              <label className="sheet-label" htmlFor="pb-niveau">
+              <label className="field-label" htmlFor="pb-niveau">
                 Mon niveau
               </label>
               <select
                 id="pb-niveau"
-                className="ec-input"
+                className="ec-input field-full"
                 value={draftLevel}
                 onChange={(e) => setDraftLevel(e.target.value)}
               >

@@ -6,6 +6,7 @@ import Community from "./views/Community";
 import Hotline from "./views/Hotline";
 import News from "./views/News";
 import ProfileBar from "./components/ProfileBar";
+import { suivreHauteurVisible } from "./lib/viewport";
 
 const SCREENS = [
   "home",
@@ -134,6 +135,10 @@ export default function App() {
     setScreen("assistant");
     window.history.pushState({ screen: "assistant" }, "");
   }, []);
+
+  // Mesure de la hauteur réellement visible : les fenêtres de détail s'y
+  // adossent pour que leurs boutons ne passent jamais sous la barre système.
+  useEffect(suivreHauteurVisible, []);
 
   useEffect(() => {
     const onPop = (e) => {

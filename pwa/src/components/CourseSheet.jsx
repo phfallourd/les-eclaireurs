@@ -1,6 +1,11 @@
 import { useEffect } from "react";
+import { fenetreOuverte } from "../lib/modale";
 
 export default function CourseSheet({ course, onClose }) {
+  // Efface le bouton flottant « Un retour ? » tant que la fiche est ouverte :
+  // il se posait par-dessus les boutons du bas.
+  useEffect(fenetreOuverte, []);
+
   // Fermeture au bouton retour Android / échap, réflexe attendu sur mobile.
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -13,8 +18,13 @@ export default function CourseSheet({ course, onClose }) {
       className="sheet-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="sheet" role="dialog" aria-modal="true">
-        <div className="sheet-grip" />
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={course.title}>
+        <div className="sheet-barre">
+          <span className="sheet-barre-titre">Fiche formation</span>
+          <button className="sheet-x" onClick={onClose} aria-label="Fermer la fiche">
+            ✕
+          </button>
+        </div>
         <div className="sheet-body">
           <div className="sheet-source">{course.sourceLabel}</div>
           <h2 className="sheet-title">{course.title}</h2>

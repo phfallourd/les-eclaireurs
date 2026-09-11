@@ -22,6 +22,9 @@ const CSS = `
   background:#1a56db;color:#fff;font:600 13px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   box-shadow:0 4px 14px rgba(26,86,219,.35)}
 .rt-bouton:hover{background:#1543ad}
+/* Une fenêtre de détail est ouverte : le bouton s'efface, il recouvrait ses
+   commandes du bas. La classe est posée par lib/modale.js. */
+.modale-ouverte .rt-bouton{display:none}
 .rt-bouton:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
 .rt-voile{position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.55);
   display:flex;align-items:flex-end;justify-content:center;padding:0}
