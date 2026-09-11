@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Catalogue — Les Éclaireurs</title>
+    <style>
+      :root {
+        --fond: #f6f7f9; --surface: #fff; --bordure: #d8dee7;
+        --texte: #14202e; --doux: #5a6b7d; --bleu: #1a56db;
+        --rouge: #b42318; --rouge-f: #fdecea; --vert: #15803d; --vert-f: #e8f5ec;
+        --orange: #b45309; --orange-f: #fdf3e3;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--fond); color: var(--texte);
+        font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      .page { max-width: 1040px; margin: 0 auto; padding: 20px 16px 60px; }
+      h1 { font-size: 1.4rem; margin: 0 0 4px; letter-spacing: -.01em; }
+      h2 { font-size: 1.02rem; margin: 0; letter-spacing: -.01em; }
+      .doux { color: var(--doux); font-size: .88rem; }
+      .carte { background: var(--surface); border: 1px solid var(--bordure);
+        border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+      .carte.ouverte { border-color: var(--bleu); box-shadow: 0 0 0 3px rgba(26,86,219,.10); }
+      label { display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .03em; color: var(--doux); margin: 10px 0 5px; }
+      input, select, textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--bordure);
+        border-radius: 9px; font: inherit; background: #fff; color: var(--texte); }
+      select.mince { width: auto; min-width: 170px; padding: 6px 9px; font-size: .84rem; }
+      input.mince { width: auto; min-width: 220px; padding: 6px 9px; font-size: .84rem; }
+      textarea { min-height: 62px; resize: vertical; }
+      button { font: inherit; cursor: pointer; }
+      .primaire { min-height: 44px; padding: 10px 16px; border: 0; border-radius: 9px;
+        background: var(--bleu); color: #fff; font-weight: 700; }
+      .primaire:disabled { opacity: .55; cursor: not-allowed; }
+      .discret { min-height: 36px; padding: 6px 11px; border: 1px solid var(--bordure);
+        border-radius: 999px; background: #fff; color: var(--texte); font-size: .82rem; font-weight: 600; }
+      .discret[aria-pressed="true"] { border-color: var(--bleu); background: #eef3fd; color: var(--bleu); }
+      .danger { border-color: #f3c3bd; color: var(--rouge); }
+      .ligne { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+      .entre { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+      .etiq { font-size: .74rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+        background: #eef1f5; color: var(--doux); white-space: nowrap; }
+      .e-publiee { background: var(--vert-f); color: var(--vert); }
+      .e-brouillon { background: var(--orange-f); color: var(--orange); }
+      .e-en_revue { background: #eef3fd; color: var(--bleu); }
+      .e-archivee, .e-rejetee { background: #eef1f5; color: var(--doux); }
+      .e-alerte { background: var(--rouge-f); color: var(--rouge); }
+      .e-ok { background: var(--vert-f); color: var(--vert); }
+      .chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+        gap: 10px; margin-bottom: 14px; }
+      .chiffre { background: var(--surface); border: 1px solid var(--bordure);
+        border-radius: 12px; padding: 10px 12px; }
+      .chiffre strong { display: block; font-size: 1.6rem; line-height: 1.15; }
+      .chiffre span { display: block; font-size: .78rem; color: var(--doux); line-height: 1.35; }
+      .chiffre.alerte { border-color: var(--rouge); background: var(--rouge-f); }
+      .chiffre.alerte strong { color: var(--rouge); }
+      .msg { padding: 10px 12px; border-radius: 9px; font-size: .88rem; margin: 10px 0; }
+      .msg-ko { background: var(--rouge-f); color: var(--rouge); }
+      .msg-ok { background: var(--vert-f); color: var(--vert); }
+      .meta { font-size: .78rem; color: var(--doux); word-break: break-word; }
+      .grille2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+      .grille3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
+      @media (max-width: 620px) { .grille2, .grille3 { grid-template-columns: 1fr; } }
+      .cases { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+      .case { display: flex; align-items: center; gap: 6px; font-size: .86rem;
+        text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--texte); margin: 0; }
+      .case input { width: 16px; height: 16px; accent-color: var(--bleu); }
+      .rangee { display: flex; gap: 10px; align-items: baseline; padding: 9px 0;
+        border-top: 1px solid #edf0f4; cursor: pointer; }
+      .rangee:hover { background: #f9fbfe; }
+      .rangee-titre { flex: 1; font-weight: 600; font-size: .93rem; }
+      .rangee-org { font-size: .78rem; color: var(--doux); }
+      .aide { font-size: .78rem; color: var(--doux); margin: 4px 0 0; }
+      .sep { height: 1px; background: var(--bordure); margin: 14px 0; border: 0; }
+      .barre-haut { display: flex; justify-content: space-between; align-items: center;
+        gap: 12px; margin-bottom: 4px; }
+      .liens { display: flex; gap: 10px; font-size: .82rem; }
+      .liens a { color: var(--bleu); }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="page">Chargement…</div>
+
+    <script type="module">
+      const URL_BASE = 'https://eutjonpxqoxldrkhxjzt.supabase.co'
+      const CLE = 'sb_publishable_EJr8VnCNYyJGFFTwH81JlQ_-ithQD1C'
+      const CLE_SESSION = 'eclaireurs-auth' // même session que le site et l'écran des retours
+
+      const page = document.getElementById('page')
+      const echapper = (s) =>
+        String(s ?? '').replace(/[&<>"']/g, (c) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+        )
+
+      function sessionStockee() {
+        try { return JSON.parse(localStorage.getItem(CLE_SESSION) || 'null') } catch { return null }
+      }
+      const perimee = (s, marge = 0) =>
+        Boolean(s?.expires_at) && s.expires_at * 1000 - marge <= Date.now()
+
+      /* Le jeton d'accès ne vit qu'une heure ; on l'échange contre un neuf avant
+         qu'il n'expire, sinon l'écran redemande le mot de passe à chaque séance. */
+      let renouvellement = null
+      async function sessionValide() {
+        const s = sessionStockee()
+        if (!s) return null
+        if (!perimee(s, 60000)) return s
+        if (!s.refresh_token) { localStorage.removeItem(CLE_SESSION); return null }
+        if (!renouvellement) {
+          renouvellement = (async () => {
+            try {
+              const r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=refresh_token`, {
+                method: 'POST',
+                headers: { apikey: CLE, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: s.refresh_token }),
+              })
+              if (!r.ok) { localStorage.removeItem(CLE_SESSION); return null }
+              const d = await r.json()
+              const n = { ...d, expires_at: d.expires_at ?? Math.floor(Date.now() / 1000) + (d.expires_in ?? 3600) }
+              localStorage.setItem(CLE_SESSION, JSON.stringify(n))
+              return n
+            } catch {
+              return s // réseau coupé : on garde la session plutôt que de déconnecter
+            } finally { renouvellement = null }
+          })()
+        }
+        return renouvellement
+      }
+
+      const entetes = async (extra = {}) => ({
+        apikey: CLE,
+        Authorization: `Bearer ${(await sessionValide())?.access_token || CLE}`,
+        'Content-Type': 'application/json',
+        ...extra,
+      })
+
+      async function api(chemin, options = {}) {
+        const { entetesSup, ...reste } = options
+        const r = await fetch(`${URL_BASE}/rest/v1/${chemin}`, {
+          headers: await entetes(entetesSup),
+          ...reste,
+        })
+        if (!r.ok) throw new Error(await lisible(r))
+        return r.status === 204 ? null : r.json()
+      }
+
+      /** Transforme une erreur PostgREST en phrase compréhensible. */
+      async function lisible(r) {
+        let d = {}
+        try { d = JSON.parse(await r.text()) } catch {}
+        if (d.message?.includes('formations_cpf_exige_un_code'))
+          return "Éligibilité CPF : il faut renseigner le code RNCP ou RS de la certification visée. Sans code, l'affirmation n'est pas vérifiable."
+        if (r.status === 401 || r.status === 403)
+          return "Droits insuffisants : seul un compte administrateur peut modifier le catalogue."
+        return d.message || d.hint || `Erreur ${r.status}`
+      }
+
+      /* ─────────── Connexion ─────────── */
+
+      function ecranConnexion(erreur) {
+        page.innerHTML = `
+          <h1>Catalogue des formations</h1>
+          <p class="doux">Espace réservé à l'équipe.</p>
+          <form class="carte" id="f">
+            ${erreur ? `<p class="msg msg-ko">${echapper(erreur)}</p>` : ''}
+            <label for="e">Adresse e-mail</label>
+            <input id="e" type="email" autocomplete="email" required />
+            <label for="m">Mot de passe</label>
+            <input id="m" type="password" autocomplete="current-password" required />
+            <button class="primaire" style="margin-top:14px;width:100%">Se connecter</button>
+          </form>`
+        document.getElementById('f').onsubmit = async (ev) => {
+          ev.preventDefault()
+          const bouton = ev.target.querySelector('button')
+          bouton.disabled = true
+          try {
+            const r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=password`, {
+              method: 'POST',
+              headers: { apikey: CLE, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: document.getElementById('e').value,
+                password: document.getElementById('m').value,
+              }),
+            })
+            const d = await r.json()
+            if (!r.ok) throw new Error(d.error_description || d.msg || 'Connexion refusée')
+            localStorage.setItem(CLE_SESSION, JSON.stringify({
+              ...d,
+              expires_at: d.expires_at ?? Math.floor(Date.now() / 1000) + (d.expires_in ?? 3600),
+            }))
+            demarrer()
+          } catch (err) {
+            ecranConnexion(err.message)
+          }
+        }
+      }
+
+      /* ─────────── Données ─────────── */
+
+      const LIB_STATUT = {
+        brouillon: 'Brouillon', en_revue: 'En revue', publiee: 'Publiée',
+        rejetee: 'Rejetée', archivee: 'Archivée',
+      }
+      const MODALITES = ['presentiel', 'distanciel', 'hybride', 'microlearning', 'afest', 'video', 'webinaire', 'blended']
+      const NIVEAUX = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé', expert: 'Expert' }
+      /* Le catalogue public ne connaît que ces cinq libellés de format : tout
+         autre texte rend la formation introuvable par le filtre. */
+      const FORMATS = ['Micro-learning', 'Vidéo', 'Blended', 'Présentiel', 'Webinar']
+      const PEREMPTION_JOURS = 183 // six mois
+
+      let formations = [], organisations = [], themes = [], regions = [], moi = null
+      let ouverte = null // id de la fiche dépliée
+      let message = null
+      const filtres = { statut: '', organisation: '', theme: '', etat: '', texte: '' }
+
+      async function charger() {
+        const [f, o, t, r] = await Promise.all([
+          api('formations?select=*,formation_themes(theme_id),formation_regions(region_code),organisations(nom,type)&order=titre.asc&limit=1000'),
+          api('organisations?select=id,nom,type&order=nom.asc'),
+          api('themes?select=id,code,libelle,ordre&order=ordre.asc'),
+          api('regions_fr?select=code,libelle,ordre&order=ordre.asc'),
+        ])
+        formations = f; organisations = o; themes = t; regions = r
+      }
+
+      const jourJ = () => new Date().toISOString().slice(0, 10)
+      const ageVerif = (f) =>
+        f.verifiee_le ? Math.floor((Date.now() - new Date(f.verifiee_le).getTime()) / 86400000) : null
+
+      /* Ce qui empêche une fiche d'être irréprochable. Une liste vide vaut
+         « bonne à publier » ; c'est ce qui pilote le tableau de bord. */
+      function defauts(f) {
+        const d = []
+        if (!f.url_source) d.push('sans lien')
+        if (!f.emoji) d.push('invisible au catalogue')
+        if (!f.organisation_id) d.push('sans organisme')
+        if (!f.formation_themes?.length) d.push('sans thème')
+        if (!f.verifiee_le) d.push('jamais vérifiée')
+        else if (ageVerif(f) > PEREMPTION_JOURS) d.push('à revérifier')
+        if (f.eligible_cpf === true && !f.code_rncp) d.push('CPF sans code')
+        return d
+      }
+
+      function filtrer() {
+        const q = filtres.texte.trim().toLowerCase()
+        return formations.filter((f) => {
+          const d = defauts(f)
+          return (
+            (!filtres.statut || f.statut === filtres.statut) &&
+            (!filtres.organisation || f.organisation_id === filtres.organisation) &&
+            (!filtres.theme || f.formation_themes?.some((x) => x.theme_id === filtres.theme)) &&
+            (!filtres.etat ||
+              (filtres.etat === 'impeccable' ? !d.length : d.includes(filtres.etat))) &&
+            (!q ||
+              f.titre?.toLowerCase().includes(q) ||
+              f.resume?.toLowerCase().includes(q) ||
+              f.organisations?.nom?.toLowerCase().includes(q))
+          )
+        })
+      }
+
+      /* ─────────── Tableau de bord ─────────── */
+
+      function tuiles() {
+        const n = (p) => formations.filter(p).length
+        const t = [
+          ['publiées', n((f) => f.statut === 'publiee'), false, 'publiee', 'statut'],
+          ['visibles au catalogue', n((f) => f.statut === 'publiee' && f.emoji), false, '', ''],
+          ['brouillons', n((f) => f.statut === 'brouillon'), false, 'brouillon', 'statut'],
+          ['archivées', n((f) => f.statut === 'archivee'), false, 'archivee', 'statut'],
+        ]
+        const a = [
+          ['jamais vérifiées', n((f) => defauts(f).includes('jamais vérifiée')), 'jamais vérifiée'],
+          ['à revérifier (+6 mois)', n((f) => defauts(f).includes('à revérifier')), 'à revérifier'],
+          ['sans lien', n((f) => defauts(f).includes('sans lien')), 'sans lien'],
+          ['sans thème', n((f) => defauts(f).includes('sans thème')), 'sans thème'],
+        ]
+        return `
+          <div class="chiffres">
+            ${t.map(([lib, v, , val, cle]) => `
+              <div class="chiffre" ${cle ? `data-f="${cle}" data-v="${val}" role="button" tabindex="0"` : ''}>
+                <strong>${v}</strong><span>${lib}</span>
+              </div>`).join('')}
+            ${a.map(([lib, v, etat]) => `
+              <div class="chiffre ${v ? 'alerte' : ''}" data-f="etat" data-v="${echapper(etat)}" role="button" tabindex="0">
+                <strong>${v}</strong><span>${lib}</span>
+              </div>`).join('')}
+          </div>`
+      }
+
+      /* ─────────── Une fiche ─────────── */
+
+      function rangee(f) {
+        const d = defauts(f)
+        return `
+          <div class="rangee" data-ouvrir="${f.id}">
+            <span class="etiq e-${echapper(f.statut)}">${LIB_STATUT[f.statut] ?? f.statut}</span>
+            <span class="rangee-titre">${echapper(f.titre)}</span>
+            <span class="rangee-org">${echapper(f.organisations?.nom || '— sans organisme')}</span>
+            ${d.length
+              ? `<span class="etiq e-alerte">${d.length} point${d.length > 1 ? 's' : ''} à traiter</span>`
+              : `<span class="etiq e-ok">complète</span>`}
+          </div>`
+      }
+
+      function formulaire(f) {
+        const est = (v, x) => (v === x ? 'selected' : '')
+        const cpf = f.eligible_cpf === true ? 'oui' : f.eligible_cpf === false ? 'non' : ''
+        const opco = f.eligible_opco === true ? 'oui' : f.eligible_opco === false ? 'non' : ''
+        const d = defauts(f)
+        const age = ageVerif(f)
+        return `
+          <div class="carte ouverte" data-fiche="${f.id}">
+            <div class="entre">
+              <h2>${echapper(f.titre || 'Nouvelle formation')}</h2>
+              <button class="discret" data-fermer="1">Replier</button>
+            </div>
+            ${d.length
+              ? `<p class="msg msg-ko" style="margin-top:10px">À traiter : ${d.map(echapper).join(' · ')}</p>`
+              : ''}
+
+            <label for="ti-${f.id}">Titre</label>
+            <input id="ti-${f.id}" data-c="titre" value="${echapper(f.titre)}" />
+
+            <label for="re-${f.id}">Résumé affiché dans le catalogue</label>
+            <textarea id="re-${f.id}" data-c="resume">${echapper(f.resume)}</textarea>
+            <p class="aide">Écrivez-le avec vos mots. Recopier le descriptif de l'organisme,
+              c'est reproduire un texte qui ne nous appartient pas.</p>
+
+            <div class="grille2">
+              <div>
+                <label for="or-${f.id}">Organisme</label>
+                <select id="or-${f.id}" data-c="organisation_id">
+                  <option value="">— à choisir —</option>
+                  ${organisations.map((o) =>
+                    `<option value="${o.id}" ${est(f.organisation_id, o.id)}>${echapper(o.nom)}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label for="ur-${f.id}">Lien vers la page officielle</label>
+                <input id="ur-${f.id}" data-c="url_source" value="${echapper(f.url_source)}"
+                       placeholder="https://…" />
+              </div>
+            </div>
+
+            <div class="grille3">
+              <div>
+                <label for="st-${f.id}">Statut</label>
+                <select id="st-${f.id}" data-c="statut">
+                  ${Object.entries(LIB_STATUT).map(([k, l]) =>
+                    `<option value="${k}" ${est(f.statut, k)}>${l}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label for="fo-${f.id}">Format affiché</label>
+                <select id="fo-${f.id}" data-c="format">
+                  <option value="">— aucun —</option>
+                  ${FORMATS.map((x) => `<option value="${x}" ${est(f.format, x)}>${x}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label for="mo-${f.id}">Modalité</label>
+                <select id="mo-${f.id}" data-c="modalite">
+                  ${MODALITES.map((x) => `<option value="${x}" ${est(f.modalite, x)}>${x}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div class="grille3">
+              <div>
+                <label for="ni-${f.id}">Niveau</label>
+                <select id="ni-${f.id}" data-c="niveau">
+                  ${Object.entries(NIVEAUX).map(([k, l]) =>
+                    `<option value="${k}" ${est(f.niveau, k)}>${l}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label for="nl-${f.id}">Niveau affiché</label>
+                <input id="nl-${f.id}" data-c="niveau_libelle" value="${echapper(f.niveau_libelle)}"
+                       placeholder="Niv. 1" />
+              </div>
+              <div>
+                <label for="dl-${f.id}">Durée affichée</label>
+                <input id="dl-${f.id}" data-c="duree_libelle" value="${echapper(f.duree_libelle)}"
+                       placeholder="1 jour (7 h)" />
+              </div>
+            </div>
+
+            <div class="grille3">
+              <div>
+                <label for="dh-${f.id}">Durée en heures</label>
+                <input id="dh-${f.id}" data-c="duree_heures" type="number" step="0.5" min="0"
+                       value="${f.duree_heures ?? ''}" />
+              </div>
+              <div>
+                <label for="pr-${f.id}">Prix en euros</label>
+                <input id="pr-${f.id}" data-c="prix_eur" type="number" step="1" min="0"
+                       value="${f.prix_eur ?? ''}" placeholder="laisser vide si inconnu" />
+              </div>
+              <div>
+                <label for="em-${f.id}">Emoji de la vignette</label>
+                <input id="em-${f.id}" data-c="emoji" value="${echapper(f.emoji)}" maxlength="4"
+                       placeholder="⚡" />
+                <p class="aide">Sans emoji, la fiche n'apparaît pas dans le catalogue.</p>
+              </div>
+            </div>
+
+            <hr class="sep" />
+
+            <div class="grille3">
+              <div>
+                <label for="ce-${f.id}">Certifiante</label>
+                <select id="ce-${f.id}" data-c="certifiante">
+                  <option value="non" ${est(f.certifiante ? 'oui' : 'non', 'non')}>Non</option>
+                  <option value="oui" ${est(f.certifiante ? 'oui' : 'non', 'oui')}>Oui</option>
+                </select>
+              </div>
+              <div>
+                <label for="cl-${f.id}">Certification visée</label>
+                <input id="cl-${f.id}" data-c="certification_libelle" value="${echapper(f.certification_libelle)}" />
+              </div>
+              <div>
+                <label for="rn-${f.id}">Code RNCP ou RS</label>
+                <input id="rn-${f.id}" data-c="code_rncp" value="${echapper(f.code_rncp)}"
+                       placeholder="RNCP38... / RS6..." />
+              </div>
+            </div>
+
+            <div class="grille2">
+              <div>
+                <label for="cp-${f.id}">Éligible au CPF</label>
+                <select id="cp-${f.id}" data-c="eligible_cpf">
+                  <option value="" ${est(cpf, '')}>Non vérifié — rien ne sera affiché</option>
+                  <option value="oui" ${est(cpf, 'oui')}>Oui, vérifié</option>
+                  <option value="non" ${est(cpf, 'non')}>Non</option>
+                </select>
+                <p class="aide">« Oui » exige un code RNCP ou RS : c'est la seule preuve
+                  d'éligibilité. Une formation annoncée CPF à tort fait perdre un dossier
+                  à l'électricien.</p>
+              </div>
+              <div>
+                <label for="op-${f.id}">Prise en charge OPCO</label>
+                <select id="op-${f.id}" data-c="eligible_opco">
+                  <option value="" ${est(opco, '')}>Non vérifié</option>
+                  <option value="oui" ${est(opco, 'oui')}>Oui, vérifié</option>
+                  <option value="non" ${est(opco, 'non')}>Non</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Thèmes</label>
+            <div class="cases">
+              ${themes.map((t) => `
+                <label class="case">
+                  <input type="checkbox" data-theme="${t.id}"
+                    ${f.formation_themes?.some((x) => x.theme_id === t.id) ? 'checked' : ''} />
+                  ${echapper(t.libelle)}
+                </label>`).join('')}
+            </div>
+
+            <label>Régions où la formation est proposée</label>
+            <div class="cases">
+              ${regions.map((r) => `
+                <label class="case">
+                  <input type="checkbox" data-region="${r.code}"
+                    ${f.formation_regions?.some((x) => x.region_code === r.code) ? 'checked' : ''} />
+                  ${echapper(r.libelle)}
+                </label>`).join('')}
+            </div>
+
+            <label for="ob-${f.id}">Objectifs, un par ligne</label>
+            <textarea id="ob-${f.id}" data-c="objectifs">${echapper((f.objectifs || []).join('\n'))}</textarea>
+
+            <hr class="sep" />
+
+            <div class="grille3">
+              <div>
+                <label for="vl-${f.id}">Vérifiée le</label>
+                <input id="vl-${f.id}" data-c="verifiee_le" type="date" value="${echapper(f.verifiee_le)}" />
+              </div>
+              <div>
+                <label for="vp-${f.id}">Par</label>
+                <input id="vp-${f.id}" data-c="verifiee_par" value="${echapper(f.verifiee_par)}" />
+              </div>
+              <div>
+                <label>&nbsp;</label>
+                <button class="discret" data-verifier="1" style="min-height:42px">
+                  Je viens de vérifier cette fiche
+                </button>
+              </div>
+            </div>
+            <label for="vn-${f.id}">Ce qui a été constaté sur la page source</label>
+            <textarea id="vn-${f.id}" data-c="verification_note">${echapper(f.verification_note)}</textarea>
+            <p class="aide">
+              ${f.verifiee_le
+                ? `Dernier contrôle il y a ${age} jour${age > 1 ? 's' : ''}.`
+                : 'Cette fiche n’a jamais été contrôlée contre sa source.'}
+              Les pages des fabricants changent sans prévenir : Hager a retiré ses formations
+              IRVE sans que le catalogue en sache rien.
+            </p>
+
+            <div class="ligne" style="margin-top:14px">
+              <button class="primaire" data-enregistrer="1">Enregistrer</button>
+              ${f.url_source
+                ? `<a class="discret" style="text-decoration:none;display:inline-flex;align-items:center"
+                     href="${echapper(f.url_source)}" target="_blank" rel="noopener noreferrer">Ouvrir la page source ↗</a>`
+                : ''}
+              <button class="discret danger" data-supprimer="1" style="margin-left:auto">Supprimer</button>
+            </div>
+          </div>`
+      }
+
+      /* ─────────── Écriture ─────────── */
+
+      const troisEtats = (v) => (v === 'oui' ? true : v === 'non' ? false : null)
+      const vide = (v) => (v === '' || v === undefined ? null : v)
+
+      function lireFormulaire(el) {
+        const champs = {}
+        el.querySelectorAll('[data-c]').forEach((i) => {
+          const c = i.dataset.c
+          const v = i.value
+          if (c === 'eligible_cpf' || c === 'eligible_opco') champs[c] = troisEtats(v)
+          else if (c === 'certifiante') champs[c] = v === 'oui'
+          else if (c === 'objectifs')
+            champs[c] = v.split('\n').map((x) => x.trim()).filter(Boolean)
+          else if (c === 'duree_heures' || c === 'prix_eur') champs[c] = v === '' ? null : Number(v)
+          else champs[c] = vide(v)
+        })
+        return champs
+      }
+
+      async function enregistrer(el, f) {
+        const champs = lireFormulaire(el)
+        const themesChoisis = [...el.querySelectorAll('[data-theme]:checked')].map((x) => x.dataset.theme)
+        const regionsChoisies = [...el.querySelectorAll('[data-region]:checked')].map((x) => x.dataset.region)
+        const bouton = el.querySelector('[data-enregistrer]')
+        bouton.disabled = true
+        try {
+          let id = f.id
+          if (f.nouvelle) {
+            // La règle d'accès exige que le créateur soit l'utilisateur courant.
+            const cree = await api('formations', {
+              method: 'POST',
+              body: JSON.stringify({ ...champs, cree_par: moi.id, slug: slug(champs.titre) }),
+              entetesSup: { Prefer: 'return=representation' },
+            })
+            id = cree[0].id
+          } else {
+            await api(`formations?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(champs) })
+          }
+          // Thèmes et régions : on repart de zéro, c'est plus sûr qu'un différentiel.
+          await api(`formation_themes?formation_id=eq.${id}`, { method: 'DELETE' })
+          if (themesChoisis.length)
+            await api('formation_themes', {
+              method: 'POST',
+              body: JSON.stringify(themesChoisis.map((t) => ({ formation_id: id, theme_id: t }))),
+            })
+          await api(`formation_regions?formation_id=eq.${id}`, { method: 'DELETE' })
+          if (regionsChoisies.length)
+            await api('formation_regions', {
+              method: 'POST',
+              body: JSON.stringify(regionsChoisies.map((r) => ({ formation_id: id, region_code: r }))),
+            })
+          message = { ok: true, texte: 'Fiche enregistrée.' }
+          ouverte = id
+          await charger()
+          dessiner()
+        } catch (e) {
+          message = { ok: false, texte: e.message }
+          bouton.disabled = false
+          dessiner()
+        }
+      }
+
+      const slug = (t) =>
+        String(t || 'formation').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) + '-' + Date.now().toString(36)
+
+      /* ─────────── Rendu ─────────── */
+
+      function dessiner() {
+        const liste = filtrer()
+        const nouvelle = ouverte === 'nouvelle'
+          ? { id: 'nouvelle', nouvelle: true, titre: '', resume: '', statut: 'brouillon',
+              modalite: 'presentiel', niveau: 'debutant', certifiante: false,
+              formation_themes: [], formation_regions: [], objectifs: [] }
+          : null
+
+        page.innerHTML = `
+          <div class="barre-haut">
+            <div>
+              <h1>Catalogue des formations</h1>
+              <p class="doux">${formations.length} fiches en base.</p>
+            </div>
+            <div class="liens">
+              <a href="/admin-retours.html">Retours testeurs</a>
+              <button class="discret" id="quitter">Se déconnecter</button>
+            </div>
+          </div>
+
+          ${message ? `<p class="msg ${message.ok ? 'msg-ok' : 'msg-ko'}">${echapper(message.texte)}</p>` : ''}
+
+          ${tuiles()}
+
+          <div class="carte">
+            <div class="ligne">
+              <input class="mince" id="q" placeholder="Rechercher un titre, un organisme…"
+                     value="${echapper(filtres.texte)}" />
+              <select class="mince" id="f-statut">
+                <option value="">Tous les statuts</option>
+                ${Object.entries(LIB_STATUT).map(([k, l]) =>
+                  `<option value="${k}" ${filtres.statut === k ? 'selected' : ''}>${l}</option>`).join('')}
+              </select>
+              <select class="mince" id="f-org">
+                <option value="">Tous les organismes</option>
+                ${organisations.map((o) =>
+                  `<option value="${o.id}" ${filtres.organisation === o.id ? 'selected' : ''}>${echapper(o.nom)}</option>`).join('')}
+              </select>
+              <select class="mince" id="f-theme">
+                <option value="">Tous les thèmes</option>
+                ${themes.map((t) =>
+                  `<option value="${t.id}" ${filtres.theme === t.id ? 'selected' : ''}>${echapper(t.libelle)}</option>`).join('')}
+              </select>
+              <select class="mince" id="f-etat">
+                <option value="">Tous les états</option>
+                <option value="impeccable" ${filtres.etat === 'impeccable' ? 'selected' : ''}>Complètes</option>
+                ${['jamais vérifiée', 'à revérifier', 'sans lien', 'sans thème', 'sans organisme', 'invisible au catalogue', 'CPF sans code']
+                  .map((e) => `<option value="${e}" ${filtres.etat === e ? 'selected' : ''}>${e}</option>`).join('')}
+              </select>
+              <button class="primaire" id="ajouter" style="margin-left:auto;min-height:38px;padding:8px 14px">
+                Nouvelle formation
+              </button>
+            </div>
+          </div>
+
+          ${nouvelle ? formulaire(nouvelle) : ''}
+
+          <div class="carte">
+            <p class="doux" style="margin:0 0 4px">
+              ${liste.length} fiche${liste.length > 1 ? 's' : ''} — cliquez sur une ligne pour l'ouvrir.
+            </p>
+            ${liste.length
+              ? liste.map((f) => (f.id === ouverte ? formulaire(f) : rangee(f))).join('')
+              : '<p class="doux" style="text-align:center;padding:14px 0">Aucune fiche pour ce filtre.</p>'}
+          </div>`
+
+        brancher()
+      }
+
+      function brancher() {
+        const q = document.getElementById('q')
+        if (q) {
+          q.oninput = () => { filtres.texte = q.value; const p = q.selectionStart; dessiner();
+            const n = document.getElementById('q'); n.focus(); n.setSelectionRange(p, p) }
+        }
+        const lier = (id, cle) => {
+          const el = document.getElementById(id)
+          if (el) el.onchange = () => { filtres[cle] = el.value; dessiner() }
+        }
+        lier('f-statut', 'statut'); lier('f-org', 'organisation')
+        lier('f-theme', 'theme'); lier('f-etat', 'etat')
+
+        page.querySelectorAll('[data-f]').forEach((el) => {
+          const agir = () => {
+            for (const k of Object.keys(filtres)) filtres[k] = ''
+            filtres[el.dataset.f] = el.dataset.v
+            dessiner()
+          }
+          el.onclick = agir
+          el.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); agir() }
+          }
+        })
+
+        const ajouter = document.getElementById('ajouter')
+        if (ajouter) ajouter.onclick = () => { ouverte = 'nouvelle'; message = null; dessiner() }
+
+        page.querySelectorAll('[data-ouvrir]').forEach((el) => {
+          el.onclick = () => { ouverte = el.dataset.ouvrir; message = null; dessiner() }
+        })
+
+        page.querySelectorAll('[data-fiche]').forEach((el) => {
+          const id = el.dataset.fiche
+          const f = id === 'nouvelle'
+            ? { id: 'nouvelle', nouvelle: true }
+            : formations.find((x) => x.id === id)
+          el.querySelector('[data-fermer]').onclick = () => { ouverte = null; dessiner() }
+          el.querySelector('[data-enregistrer]').onclick = () => enregistrer(el, f)
+          const bv = el.querySelector('[data-verifier]')
+          if (bv) bv.onclick = () => {
+            el.querySelector('[data-c="verifiee_le"]').value = jourJ()
+            const par = el.querySelector('[data-c="verifiee_par"]')
+            if (!par.value) par.value = moi?.nom || moi?.email || ''
+          }
+          const bs = el.querySelector('[data-supprimer]')
+          if (bs) bs.onclick = async () => {
+            if (id === 'nouvelle') { ouverte = null; return dessiner() }
+            if (!confirm('Supprimer définitivement cette fiche ? Préférez « Archivée » si elle a existé.')) return
+            try {
+              await api(`formation_themes?formation_id=eq.${id}`, { method: 'DELETE' })
+              await api(`formation_regions?formation_id=eq.${id}`, { method: 'DELETE' })
+              await api(`formations?id=eq.${id}`, { method: 'DELETE' })
+              message = { ok: true, texte: 'Fiche supprimée.' }
+              ouverte = null
+              await charger()
+            } catch (e) {
+              message = { ok: false, texte: e.message }
+            }
+            dessiner()
+          }
+        })
+
+        const quitter = document.getElementById('quitter')
+        if (quitter) quitter.onclick = () => {
+          localStorage.removeItem(CLE_SESSION)
+          ecranConnexion()
+        }
+      }
+
+      /* ─────────── Démarrage ─────────── */
+
+      async function demarrer() {
+        page.textContent = 'Chargement…'
+        const s = await sessionValide()
+        if (!s) return ecranConnexion()
+        try {
+          const profils = await api(`profils?select=role,nom_complet,email&id=eq.${s.user?.id}`)
+          if (profils?.[0]?.role !== 'admin')
+            return ecranConnexion("Ce compte n'a pas les droits d'administration du catalogue.")
+          moi = { id: s.user.id, nom: profils[0].nom_complet, email: profils[0].email }
+          await charger()
+          dessiner()
+        } catch (e) {
+          ecranConnexion(e.message)
+        }
+      }
+
+      demarrer()
+    </script>
+  </body>
+</html>
