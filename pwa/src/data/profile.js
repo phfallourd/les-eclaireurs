@@ -18,8 +18,18 @@ const KEY = "eclaireurs:profile";
 const DEFAULT_PROFILE = {
   name: "",
   specialty: "Électricien installateur",
+  level: "",
   saved: [], // identifiants de formations
 };
+
+/** Échelle reprise telle quelle de la base : colonne profils.niveau. */
+export const LEVELS = [
+  { id: "debutant", label: "Débutant" },
+  { id: "intermediaire", label: "Intermédiaire" },
+  { id: "avance", label: "Avancé" },
+  { id: "expert", label: "Expert" },
+];
+export const levelLabel = (id) => LEVELS.find((l) => l.id === id)?.label || "";
 
 export const SPECIALTIES = [
   "Électricien installateur",
@@ -85,7 +95,7 @@ async function pousserIdentite() {
   await pgUpdate(
     "profils",
     { id: `eq.${uid()}` },
-    { nom_complet: current.name || null, metier: current.specialty || null }
+    { nom_complet: current.name || null, metier: current.specialty || null, niveau: current.level || null }
   );
 }
 
@@ -99,7 +109,7 @@ export async function synchroniser() {
   if (!id) return;
 
   const [profils, inscriptions] = await Promise.all([
-    pg("profils", { select: "nom_complet,metier", id: `eq.${id}` }),
+    pg("profils", { select: "nom_complet,metier,niveau", id: `eq.${id}` }),
     pg("inscriptions", { select: "formation_id", user_id: `eq.${id}` }),
   ]);
 
@@ -116,6 +126,7 @@ export async function synchroniser() {
     ...current,
     name: distant.nom_complet || current.name,
     specialty: distant.metier || current.specialty,
+    level: distant.niveau || current.level,
     saved: fusion,
   });
 
@@ -137,11 +148,12 @@ surChangementSession((s) => {
 
 /* ─────────── Écriture ─────────── */
 
-export function setIdentity({ name, specialty }) {
+export function setIdentity({ name, specialty, level }) {
   write({
     ...current,
     name: name ?? current.name,
     specialty: specialty ?? current.specialty,
+    level: level ?? current.level,
   });
   if (uid()) pousserIdentite().catch((e) => console.warn("[Profil] envoi :", e));
 }

@@ -14,6 +14,7 @@ const PEERS = [
     name: "Karim B.",
     city: "Nantes (44)",
     specialty: "IRVE · Copropriétés",
+    level: "Expert",
     tags: ["Schneider", "Legrand"],
     interventions: 47,
     online: true,
@@ -23,6 +24,7 @@ const PEERS = [
     name: "Sophie M.",
     city: "Rennes (35)",
     specialty: "PAC air/eau · RGE",
+    level: "Avancé",
     tags: ["Atlantic", "Daikin"],
     interventions: 62,
     online: true,
@@ -32,6 +34,7 @@ const PEERS = [
     name: "Thierry L.",
     city: "Angers (49)",
     specialty: "Tertiaire · TGBT",
+    level: "Intermédiaire",
     tags: ["Hager", "Siemens"],
     interventions: 118,
     online: false,
@@ -41,6 +44,7 @@ const PEERS = [
     name: "Mehdi A.",
     city: "Le Mans (72)",
     specialty: "Domotique · KNX",
+    level: "Avancé",
     tags: ["Legrand", "Hager"],
     interventions: 29,
     online: false,
@@ -94,7 +98,10 @@ export default function Community({ onBack }) {
             </div>
             <div className="peer-info">
               <div className="peer-name">{p.name}</div>
-              <div className="peer-spec">{p.specialty}</div>
+              <div className="peer-spec">
+                {p.specialty}
+                {p.level && <span className="peer-niveau">{p.level}</span>}
+              </div>
               <div className="peer-meta">
                 {p.city} · {p.interventions} interventions
               </div>

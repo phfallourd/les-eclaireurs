@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useProfile, setIdentity, initials, SPECIALTIES, oublierLocalement } from "../data/profile";
+import { useProfile, setIdentity, initials, SPECIALTIES, LEVELS, levelLabel, oublierLocalement } from "../data/profile";
 import {
   useSession,
   seConnecter,
@@ -16,6 +16,7 @@ export default function ProfileBar() {
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(profile.name);
   const [draftSpecialty, setDraftSpecialty] = useState(profile.specialty);
+  const [draftLevel, setDraftLevel] = useState(profile.level || "");
 
   // Formulaire de compte
   const [modeCompte, setModeCompte] = useState(null); // null | "connexion" | "inscription"
@@ -28,6 +29,7 @@ export default function ProfileBar() {
   const open = (mode = null) => {
     setDraftName(profile.name);
     setDraftSpecialty(profile.specialty);
+    setDraftLevel(profile.level || "");
     setErreur(null);
     setInfo(null);
     setModeCompte(mode);
@@ -35,7 +37,7 @@ export default function ProfileBar() {
   };
 
   const save = () => {
-    setIdentity({ name: draftName.trim(), specialty: draftSpecialty });
+    setIdentity({ name: draftName.trim(), specialty: draftSpecialty, level: draftLevel });
     setEditing(false);
   };
 
@@ -91,7 +93,10 @@ export default function ProfileBar() {
         <span className="pb-avatar">{initials(profile.name)}</span>
         <span className="pb-text">
           <span className="pb-name">{displayName}</span>
-          <span className="pb-status">{profile.specialty}</span>
+          <span className="pb-status">
+            {profile.specialty}
+            {profile.level ? ` · ${levelLabel(profile.level)}` : ""}
+          </span>
         </span>
         <span className="pb-edit">{session ? "Mon compte" : "Modifier"}</span>
       </button>
@@ -165,6 +170,24 @@ export default function ProfileBar() {
                 {SPECIALTIES.map((s) => (
                   <option key={s} value={s}>
                     {s}
+                  </option>
+                ))}
+              </select>
+
+              {/* Échelle reprise de la base, pas inventée ici (retour 3). */}
+              <label className="sheet-label" htmlFor="pb-niveau">
+                Mon niveau
+              </label>
+              <select
+                id="pb-niveau"
+                className="ec-input"
+                value={draftLevel}
+                onChange={(e) => setDraftLevel(e.target.value)}
+              >
+                <option value="">Je préfère ne pas le dire</option>
+                {LEVELS.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.label}
                   </option>
                 ))}
               </select>
