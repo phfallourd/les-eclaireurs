@@ -40,24 +40,20 @@ const NAV = [
     ),
   },
   {
-    id: "catalog",
-    label: "Formations",
+    id: "videos",
+    label: "Tutos",
     icon: (
       <>
-        <path
-          d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v15H6.5A2.5 2.5 0 0 0 4 19.5z"
+        <rect
+          x="2"
+          y="4"
+          width="20"
+          height="16"
+          rx="3"
           stroke="currentColor"
           strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
         />
-        <path
-          d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v5H6.5A2.5 2.5 0 0 1 4 19.5z"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <path d="M10 9l5 3-5 3z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
       </>
     ),
   },
@@ -181,12 +177,10 @@ export default function App() {
             key={request.id}
           />
         )}
-        {screen === "videos" && (
-          <Catalog onBack={goHome} go={go} initialMode="videos" key="videos" />
-        )}
-        {screen === "catalog" && (
-          <Catalog onBack={goHome} go={go} initialMode="training" key="training" />
-        )}
+        {/* L'onglet ne montre plus que les tutos : l'électricien choisit ses
+            formations sur le site web. « catalog » reste accepté (anciens
+            liens, raccourcis) et mène au même écran. */}
+        {(screen === "videos" || screen === "catalog") && <Catalog onBack={goHome} />}
         {screen === "news" && <News onBack={goHome} />}
         {screen === "community" && <Community onBack={goHome} />}
         {screen === "hotline" && <Hotline onBack={goHome} />}
@@ -194,9 +188,7 @@ export default function App() {
 
       <nav className="nav-bar">
         {NAV.map((n) => {
-          // « videos » et « catalog » sont les deux modes d'un même onglet :
-          // l'onglet Formations reste allumé quel que soit le mode affiché.
-          const actif = screen === n.id || (n.id === "catalog" && screen === "videos");
+          const actif = screen === n.id || (n.id === "videos" && screen === "catalog");
           return (
           <button
             key={n.id}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { D } from "./lib/donnees";
-import Compte, { InvitationCompte, ModaleCompte } from "./components/Compte";
+import Compte, { InvitationCompte, ModaleCompte, useCompte, ouvrirCompte } from "./components/Compte";
+import { pg, pgInsert, pgDelete, utilisateur } from "./lib/supabase";
 
 /* ─────────── FONTS & CSS ─────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');`;
@@ -271,6 +272,20 @@ a.skip-link:focus{top:1rem;}
 .ccard-thumb-pro{display:flex;align-items:center;justify-content:center;}
 .ccard-thumb-pro .ccard-thumb-badge{top:8px;left:8px;padding:3px 7px;}
 .ccard-thumb-pro .ccard-thumb-badge img{max-height:11px;width:auto;}
+.ccard-thumb-scene{display:block;padding:0;}
+.sel-ligne{display:flex;align-items:center;gap:12px;padding:.7rem 0;border-bottom:1px solid var(--border);}
+.sel-titre{display:block;background:none;border:0;padding:0;text-align:left;font-family:inherit;font-size:.82rem;
+  font-weight:700;color:var(--text);cursor:pointer;line-height:1.3;}
+.sel-titre:hover{color:var(--blue);text-decoration:underline;}
+.sel-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.sel-lancer{padding:7px 14px !important;font-size:.74rem !important;white-space:nowrap;}
+.sel-retirer{background:none;border:1px solid var(--border);border-radius:8px;width:30px;height:30px;
+  color:var(--text3);cursor:pointer;font-size:.8rem;}
+.sel-retirer:hover{border-color:#fca5a5;color:#dc2626;}
+@media(max-width:520px){.sel-ligne{flex-wrap:wrap;}.sel-actions{width:100%;justify-content:flex-end;}}
+.ccard-thumb-scene svg{display:block;position:absolute;inset:0;}
+.scene-label{position:absolute;left:14px;bottom:12px;max-width:52%;color:#fff;font-size:.78rem;font-weight:800;
+  letter-spacing:.01em;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.18);}
 .src-chips{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.5rem;}
 .sc-n,.fchip-n{font-size:.66rem;font-weight:800;opacity:.6;font-variant-numeric:tabular-nums;}
 .legende-niveaux{display:flex;flex-wrap:wrap;gap:.2rem 1rem;align-items:baseline;
@@ -873,28 +888,129 @@ const NIVEAUX = {
 };
 const sensNiveau = (n) => NIVEAUX[n] || "";
 
-/* Illustration par thème plutôt que logo du fournisseur : ce qu'on cherche dans
-   un catalogue, c'est le sujet, pas la marque (retour de Paul-Henry du 11/09).
-   Des formes dessinées en SVG, donc aucun fichier à héberger, aucune photo à
-   acheter, et un registre plus sobre que les emojis sur fond pastel. */
-const THEME_VISUEL = {
-  "IRVE":            {c:"#1a56db", d:"M7 3h7l-2 6h4l-8 12 2-8H6z"},
-  "PAC":             {c:"#0891b2", d:"M12 3a5 5 0 0 1 5 5c0 2-1 3-1 5a4 4 0 1 1-8 0c0-2-1-3-1-5a5 5 0 0 1 5-5z"},
-  "Solaire":         {c:"#f59e0b", d:"M12 6a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 1v2M12 21v2M3 12H1M23 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"},
-  "TGBT":            {c:"#7c3aed", d:"M4 4h16v5H4zM4 11h7v9H4zM13 11h7v9h-7z"},
-  "GTB":             {c:"#0f766e", d:"M4 20V9l8-5 8 5v11zM9 20v-6h6v6"},
-  "Domotique":       {c:"#db2777", d:"M5 19V8l7-4 7 4v11zM10 19v-5h4v5M12 9v2"},
-  "Efficacité":      {c:"#16a34a", d:"M4 18h4V9H4zM10 18h4V4h-4zM16 18h4v-6h-4z"},
-  "IoT":             {c:"#0284c7", d:"M12 18a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM8 14a6 6 0 0 1 8 0M5 10a11 11 0 0 1 14 0"},
-  "PME":             {c:"#475569", d:"M4 19h16M6 19V9l6-4 6 4v10M10 19v-4h4v4"},
+/* En-tête des tuiles : une scène illustrant le thème, sur un dégradé à la
+   couleur du thème, avec le nom du thème en clair. Le fournisseur n'y figure
+   plus : il est déjà affiché juste en dessous (retour du 11/09, lot du 24/09).
+   Tout est dessiné en SVG : rien à héberger, aucune photo à licencier, et un
+   rendu net à toutes les tailles. Chaque scène occupe la moitié droite d'un
+   cadre 320×104 ; la moitié gauche porte le libellé. */
+const TRAIT = {fill:"none",stroke:"#fff",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"};
+const PLEIN = {fill:"rgba(255,255,255,.18)",stroke:"#fff",strokeWidth:2.4,strokeLinejoin:"round"};
+const SCENES = {
+  IRVE: {c:"#1a56db", c2:"#3b82f6", label:"IRVE", s:(
+    <g>
+      <rect x="214" y="18" width="38" height="70" rx="7" {...PLEIN}/>
+      <rect x="222" y="27" width="22" height="16" rx="3" {...TRAIT}/>
+      <path d="M234 30l-5 7h5l-3 5" {...TRAIT}/>
+      <circle cx="233" cy="62" r="6" {...TRAIT}/>
+      <path d="M252 58c22 0 22 24 42 24h6" {...TRAIT}/>
+      <rect x="296" y="76" width="12" height="12" rx="3" {...PLEIN}/>
+      <path d="M196 88h124" {...TRAIT} opacity=".5"/>
+    </g>)},
+  PAC: {c:"#0e7490", c2:"#06b6d4", label:"Pompe à chaleur", s:(
+    <g>
+      <rect x="196" y="26" width="104" height="60" rx="7" {...PLEIN}/>
+      <circle cx="232" cy="56" r="21" {...TRAIT}/>
+      <circle cx="232" cy="56" r="3.5" fill="#fff"/>
+      <path d="M232 52c-2-9 6-14 9-9M236 57c9-1 12 7 7 9M229 59c-5 8-13 5-11 0M229 53c-7-5-3-13 2-11" {...TRAIT} strokeWidth="2"/>
+      <path d="M266 38v36M276 38v36M286 38v36" {...TRAIT} opacity=".75"/>
+      <path d="M214 18c3-4 0-7 3-11M232 18c3-4 0-7 3-11M250 18c3-4 0-7 3-11" {...TRAIT} opacity=".6"/>
+    </g>)},
+  Solaire: {c:"#d97706", c2:"#fbbf24", label:"Solaire PV", s:(
+    <g>
+      <circle cx="286" cy="24" r="10" {...PLEIN}/>
+      <path d="M286 7v4M286 37v4M269 24h4M299 24h4M274 12l3 3M295 33l3 3M298 12l-3 3M277 33l-3 3" {...TRAIT} strokeWidth="2"/>
+      <path d="M196 84l22-40h54l-22 40z" {...PLEIN}/>
+      <path d="M203.3 71h53.4M210.7 57.5h53.4M214 84l22-40M232 84l22-40" {...TRAIT} strokeWidth="1.8"/>
+      <path d="M236 84v8M218 92h36" {...TRAIT}/>
+    </g>)},
+  TGBT: {c:"#6d28d9", c2:"#a78bfa", label:"TGBT", s:(
+    <g>
+      <rect x="206" y="12" width="84" height="80" rx="6" {...PLEIN}/>
+      {[24,44,64].map(y=>(
+        <g key={y}>
+          <path d={`M214 ${y+8}h68`} {...TRAIT} opacity=".5" strokeWidth="1.6"/>
+          {[0,1,2,3,4].map(i=><rect key={i} x={216+i*13} y={y} width="8" height="14" rx="1.5" {...TRAIT} strokeWidth="1.8"/>)}
+        </g>))}
+      <circle cx="282" cy="20" r="2.6" fill="#fff"/>
+    </g>)},
+  GTB: {c:"#0f766e", c2:"#14b8a6", label:"GTB / GTC", s:(
+    <g>
+      <rect x="200" y="20" width="52" height="68" rx="3" {...PLEIN}/>
+      {[30,44,58].map(y=>[208,222,236].map(x=><rect key={x+"-"+y} x={x} y={y} width="8" height="8" rx="1.5" fill="#fff" opacity=".85"/>))}
+      <path d="M220 88v-12h12v12" {...TRAIT}/>
+      <path d="M252 34h18l14-12M270 34l14 14M252 70h32" {...TRAIT} strokeWidth="1.8"/>
+      <circle cx="288" cy="19" r="5" {...PLEIN}/><circle cx="288" cy="51" r="5" {...PLEIN}/><circle cx="289" cy="70" r="5" {...PLEIN}/>
+    </g>)},
+  Domotique: {c:"#be185d", c2:"#f472b6", label:"Domotique", s:(
+    <g>
+      <path d="M204 88V52l40-30 40 30v36z" {...PLEIN}/>
+      <path d="M244 72a11 11 0 1 0-8-3.5V76h16v-7.5A11 11 0 0 0 244 72z" {...TRAIT} strokeWidth="2"/>
+      <path d="M239 81h10" {...TRAIT} strokeWidth="2"/>
+      <path d="M284 30a14 14 0 0 1 14 0M280 23a22 22 0 0 1 22 0M288 36a6 6 0 0 1 6 0" {...TRAIT} strokeWidth="2"/>
+    </g>)},
+  "Efficacité": {c:"#15803d", c2:"#4ade80", label:"Efficacité énergétique", s:(
+    <g>
+      {[[204,30],[226,44],[248,56],[270,66]].map(([x,y])=><rect key={x} x={x} y={y} width="14" height={88-y} rx="2.5" {...PLEIN}/>)}
+      <path d="M200 22l80 38" {...TRAIT} strokeDasharray="4 5" opacity=".75"/>
+      <path d="M296 38c-16 0-22 10-18 22 12 2 20-6 18-22zM278 60l10-11" {...TRAIT} strokeWidth="2"/>
+      <path d="M196 88h110" {...TRAIT} opacity=".5"/>
+    </g>)},
+  IoT: {c:"#0369a1", c2:"#38bdf8", label:"IoT / Réseau", s:(
+    <g>
+      <path d="M248 52L212 28M248 52l40-26M248 52l-34 30M248 52l44 28M212 28l-8 30M288 26l12 30" {...TRAIT} strokeWidth="1.8" opacity=".8"/>
+      <circle cx="248" cy="52" r="12" {...PLEIN}/>
+      <circle cx="248" cy="52" r="4" fill="#fff"/>
+      {[[212,28],[288,26],[214,82],[292,80],[204,58],[300,56]].map(([x,y])=><circle key={x+"-"+y} cx={x} cy={y} r="6" {...PLEIN}/>)}
+    </g>)},
+  PME: {c:"#334155", c2:"#64748b", label:"Supervision", s:(
+    <g>
+      <rect x="198" y="16" width="102" height="62" rx="6" {...PLEIN}/>
+      <path d="M208 64l18-18 14 10 20-24 16 12 14-14" {...TRAIT}/>
+      <path d="M208 70h82" {...TRAIT} opacity=".45" strokeWidth="1.6"/>
+      <path d="M249 78v10M232 90h34" {...TRAIT}/>
+    </g>)},
 };
-/** Le premier thème d'une formation détermine son illustration. */
-function visuelDe(course) {
-  const cle = Object.keys(THEME_VISUEL).find((k) =>
+const SCENE_DEFAUT = {c:"#475569", c2:"#94a3b8", label:"Formation", s:(
+  <g>
+    <rect x="222" y="20" width="44" height="54" rx="10" {...PLEIN}/>
+    <path d="M234 20V8M254 20V8M244 74v18" {...TRAIT}/>
+  </g>)};
+/** Le premier thème reconnu d'une formation détermine sa scène. */
+function sceneDe(course) {
+  const cle = Object.keys(SCENES).find((k) =>
     (course.themes || []).some((t) => t.toLowerCase().startsWith(k.toLowerCase()))
   );
-  return THEME_VISUEL[cle] || {c:"#64748b", d:"M4 12h16M12 4v16"};
+  return SCENES[cle] || SCENE_DEFAUT;
 }
+function EnteteTuile({course}) {
+  const v = sceneDe(course);
+  const id = `g-${String(course.id).replace(/[^a-z0-9]/gi,"")}`;
+  return (
+    <div className="ccard-thumb ccard-thumb-scene" aria-hidden="true">
+      <svg viewBox="0 0 320 104" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={v.c}/><stop offset="1" stopColor={v.c2}/>
+          </linearGradient>
+        </defs>
+        <rect width="320" height="104" fill={`url(#${id})`}/>
+        <circle cx="250" cy="52" r="70" fill="#fff" opacity=".07"/>
+        <circle cx="250" cy="52" r="46" fill="#fff" opacity=".06"/>
+        <path d="M0 96h320" stroke="#fff" opacity=".12"/>
+        {v.s}
+      </svg>
+      <span className="scene-label">{v.label}</span>
+    </div>
+  );
+}
+/* Les identifiants du catalogue en base sont des UUID ; ceux du catalogue de
+   secours n'en sont pas et ne peuvent pas être synchronisés. */
+const estIdBase=(id)=>typeof id==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+/* Échelle de la colonne profils.niveau, libellés identiques à l'application. */
+const NIVEAU_PROFIL={debutant:"Débutant",intermediaire:"Intermédiaire",avance:"Avancé",expert:"Expert"};
+const initialesDe=(n="")=>n.split(/[\s@.]+/).filter(Boolean).slice(0,2).map(m=>m[0].toUpperCase()).join("")||"?";
+
 /* Contenu chargé depuis Supabase avant le rendu (voir lib/donnees.js). */
 const PARCOURS = D.parcours;
 const FINANCEMENT = D.financement;
@@ -1841,9 +1957,50 @@ export default function App(){
   },[termStep]);
 
   const showToast=msg=>{setToast(msg);setTimeout(()=>setToast(null),3200);};
+
+  /* Compte : le même que dans l'application. Les formations sélectionnées
+     vivent dans la table `inscriptions`, partagée avec l'application ; sans
+     compte, elles restent le temps de la visite. */
+  const {connecte,nom,profil}=useCompte();
+  useEffect(()=>{
+    const u=utilisateur();
+    if(!connecte||!u) return;
+    let annule=false;
+    pg("inscriptions",{select:"formation_id",user_id:`eq.${u.id}`})
+      .then(async lignes=>{
+        if(annule) return;
+        const distants=lignes.map(l=>l.formation_id);
+        setParcours(local=>{
+          // Ce qui a été choisi avant la connexion remonte au compte.
+          const aEnvoyer=local.filter(c=>estIdBase(c.id)&&!distants.includes(c.id));
+          if(aEnvoyer.length) pgInsert("inscriptions",aEnvoyer.map(c=>({user_id:u.id,formation_id:c.id})),{retour:false,ignorerDoublons:true}).catch(e=>console.warn("[Parcours] envoi :",e));
+          const duCompte=COURSES.filter(c=>distants.includes(c.id)&&!local.some(x=>x.id===c.id));
+          return [...local,...duCompte];
+        });
+      })
+      .catch(e=>console.warn("[Parcours] lecture :",e));
+    return()=>{annule=true;};
+  },[connecte]);
+  // Déconnexion : la sélection du compte ne reste pas affichée.
+  useEffect(()=>{if(!connecte) setParcours([]);},[connecte]);
+
   const addToParcours=c=>{
-    if(!parcours.find(x=>x.id===c.id)){setParcours(p=>[...p,c]);showToast(`"${c.title}" ajouté !`);}
+    if(!parcours.find(x=>x.id===c.id)){
+      setParcours(p=>[...p,c]);showToast(`"${c.title}" ajouté !`);
+      const u=utilisateur();
+      if(u&&estIdBase(c.id)) pgInsert("inscriptions",[{user_id:u.id,formation_id:c.id}],{retour:false,ignorerDoublons:true}).catch(e=>console.warn("[Parcours] ajout :",e));
+    }
     else showToast("Déjà dans votre parcours.");
+  };
+  const retirerDuParcours=c=>{
+    setParcours(p=>p.filter(x=>x.id!==c.id));
+    const u=utilisateur();
+    if(u&&estIdBase(c.id)) pgDelete("inscriptions",{user_id:`eq.${u.id}`,formation_id:`eq.${c.id}`}).catch(e=>console.warn("[Parcours] retrait :",e));
+  };
+  /* « Lancer » : la formation se suit chez l'organisme qui la délivre. */
+  const lancer=c=>{
+    if(c.url) window.open(c.url,"_blank","noopener,noreferrer");
+    else setSelected(c);
   };
 
   /* Un même prédicat sert au filtrage et au comptage des options : c'est ce qui
@@ -2270,14 +2427,7 @@ export default function App(){
                       {/* Le bandeau illustre le thème ; le fournisseur passe en petit
                           dans un coin. On y gagne aussi de la hauteur au profit de
                           l'information (retours 27 puis Paul-Henry du 11/09). */}
-                      {(()=>{const v=visuelDe(c);return(
-                      <div className="ccard-thumb ccard-thumb-pro" style={{background:`${v.c}14`}} aria-hidden="true">
-                        <svg viewBox="0 0 24 24" className="thumb-svg" fill="none"
-                          stroke={v.c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                          <path d={v.d}/>
-                        </svg>
-                        <div className="ccard-thumb-badge"><Logo id={c.source} h={11}/></div>
-                      </div>);})()}
+                      <EnteteTuile course={c}/>
                       <div className="ccard-body">
                         <div className="ccard-source-row">
                           <div className="source-mini"><Logo id={c.source} h={14}/></div>
@@ -2472,17 +2622,6 @@ export default function App(){
                     <span style={{fontSize:".78rem",color:"rgba(255,255,255,.85)"}}>Le simulateur n’est pas encore branché — les trois dispositifs ci-dessous sont réels.</span></p>
                 </div>
               </div>
-              <div style={{marginTop:"3rem"}}>
-                <div className="section-head"><div className="s-chip">Organismes partenaires</div><h2 className="s-title">Nos garants institutionnels</h2></div>
-                <div style={{display:"flex",gap:"1.25rem",flexWrap:"wrap"}}>
-                  {[{id:"ademe",l:"ADEME"},{id:"enedis",l:"Enedis"},{id:"edf",l:"EDF"},{id:"rte",l:"RTE"}].map(({id,l})=>(
-                    <div key={id} style={{background:"white",border:"1.5px solid var(--border)",borderRadius:"var(--r)",padding:"1rem 1.75rem",display:"flex",alignItems:"center",gap:"12px",boxShadow:"var(--sh)"}}>
-                      <Logo id={id} h={30}/><span style={{fontWeight:700,color:"var(--text2)"}}>{l}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* AIDES RÉGIONALES */}
               <div style={{marginTop:"3rem"}}>
                 <div className="section-head">
@@ -2679,17 +2818,38 @@ export default function App(){
                       </div>
                     </div>
                   </div>
+                  {/* Identité : celle du compte quand on est connecté (nom, métier,
+                      niveau, région — les mêmes que dans l'application). Sans
+                      compte, le profil d'exemple reste affiché et marqué comme tel.
+                      Ce que le compte ne contient pas encore (certifications,
+                      compétences) reste en démonstration, marqué « Démo ». */}
                   <div className="profile-card" style={{textAlign:"center",marginBottom:"1rem"}}>
-                    <div className="profile-avatar" aria-hidden="true">👷</div>
-                    <div className="profile-name">Antoine E.</div>
-                    <div className="profile-role">Électricien installateur</div>
-                    <div style={{display:"flex",justifyContent:"center",gap:".5rem",flexWrap:"wrap",marginBottom:"1.5rem"}}>
+                    <div className="profile-avatar" aria-hidden="true">{connecte?initialesDe(nom):"👷"}</div>
+                    <div className="profile-name">{connecte?nom:"Antoine E."}</div>
+                    <div className="profile-role">
+                      {connecte?(profil?.metier||"Électricien installateur"):"Électricien installateur"}
+                      {connecte&&profil?.region?` · ${profil.region}`:""}
+                    </div>
+                    <div style={{display:"flex",justifyContent:"center",gap:".5rem",flexWrap:"wrap",marginBottom:".75rem"}}>
+                      {connecte
+                        ?(profil?.niveau
+                          ?<span className="cbadge cb-xp" title="Niveau déclaré dans votre profil">Niveau {NIVEAU_PROFIL[profil.niveau]||profil.niveau}</span>
+                          :<span style={{fontSize:".72rem",color:"var(--text3)"}}>Niveau non renseigné — à compléter dans l’application</span>)
+                        :<span className="puce-demo">Profil d’exemple</span>}
+                    </div>
+                    <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:".5rem",flexWrap:"wrap",marginBottom:"1.5rem"}}>
                       <span className="cbadge cb-cert">EcoXpert</span>
                       <span className="cbadge cb-cpf">CPF</span>
                       <span className="cbadge cb-xp">QUALIFELEC</span>
+                      {connecte&&<span className="puce-demo">Démo</span>}
                     </div>
-                    <h3 style={{fontWeight:800,fontSize:".9rem",color:"var(--text)",marginBottom:"1rem",textAlign:"left"}}>Compétences acquises</h3>
-                    {[["IRVE",85],["Domotique / Wiser",62],["TGBT Intelligent",40],["Solaire PV",71],["GTB / GTC",25]].map(([s,p])=>(
+                    {!connecte&&(
+                      <button className="btn-secondary" style={{fontSize:".75rem",marginBottom:"1.25rem"}} onClick={()=>ouvrirCompte("connexion")}>Se connecter pour voir mon profil</button>
+                    )}
+                    <h3 style={{fontWeight:800,fontSize:".9rem",color:"var(--text)",marginBottom:"1rem",textAlign:"left"}}>
+                      Compétences acquises {connecte&&<span className="puce-demo" style={{marginLeft:".4rem"}}>Démo</span>}
+                    </h3>
+                    {[["IRVE",85],["Domotique",62],["TGBT Intelligent",40],["Solaire PV",71],["GTB / GTC",25]].map(([s,p])=>(
                       <div key={s} className="skill-row">
                         <div className="skill-top"><span>{s}</span><span className="skill-pct">{p}%</span></div>
                         <div className="skill-track"><div className="skill-fill" style={{width:`${p}%`}}/></div>
@@ -2699,8 +2859,11 @@ export default function App(){
                 </div>
                 <div>
                   <div className="kpi-row">
-                    {[["⚡","12","Formations suivies"],["🏅","4","Badges obtenus"],["🌱","2t","CO₂ évités"]].map(([ico,val,lbl])=>(
-                      <div key={lbl} className="kpi-box">
+                    {/* « Formations sélectionnées » est réel (compte ou visite en
+                        cours) ; badges et CO₂ restent des chiffres d'illustration. */}
+                    {[["⚡",String(parcours.length),parcours.length>1?"Formations sélectionnées":"Formation sélectionnée",false],["🏅","4","Badges obtenus",true],["🌱","2t","CO₂ évités",true]].map(([ico,val,lbl,demo])=>(
+                      <div key={lbl} className="kpi-box" style={{position:"relative"}}>
+                        {demo&&<span className="puce-demo" style={{position:"absolute",top:8,right:8}}>Démo</span>}
                         <div style={{fontSize:"2rem",marginBottom:".5rem"}} aria-hidden="true">{ico}</div>
                         <div className="kpi-val" aria-label={val} style={ico==="🌱"?{background:"linear-gradient(135deg,#16a34a,#0ea5e9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}:{}}>{val}</div>
                         <div className="kpi-lbl">{lbl}</div>
@@ -2709,11 +2872,41 @@ export default function App(){
                   </div>
                   <div className="fcard-fin">
                     <h2 className="fi-title" style={{marginBottom:"1.25rem"}}>
-                      Parcours actif — {2+parcours.length} formation{2+parcours.length>1?"s":""}
+                      Mon parcours
                     </h2>
 
-                    {/* Formation réalisée */}
-                    <div style={{marginBottom:".5rem",fontSize:".6rem",fontWeight:700,color:"var(--text3)",textTransform:"uppercase",letterSpacing:".06em"}}>✅ Réalisée</div>
+                    {/* Formations sélectionnées : en tête, puisque ce sont les seules
+                        réelles. Chacune se lance chez l'organisme qui la délivre. */}
+                    {parcours.length>0&&(
+                      <div style={{marginBottom:"1.25rem"}}>
+                        <div style={{marginBottom:".5rem",fontSize:".6rem",fontWeight:700,color:"var(--text3)",textTransform:"uppercase",letterSpacing:".06em"}}>📌 Sélectionnées{connecte?" — synchronisées avec l’application":""}</div>
+                        {parcours.map(c=>(
+                          <div key={c.id} className="sel-ligne">
+                            <span style={{fontSize:"1.4rem"}} aria-hidden="true">{c.emoji}</span>
+                            <div style={{flex:1,minWidth:0}}>
+                              <button className="sel-titre" onClick={()=>setSelected(c)} title="Voir la fiche">{c.title}</button>
+                              <div style={{fontFamily:"'DM Mono',monospace",fontSize:".6rem",color:"var(--text2)"}}>{c.duration} · {c.format} · {c.sourceLabel}</div>
+                            </div>
+                            <div className="sel-actions">
+                              <button className="btn-primary sel-lancer" onClick={()=>lancer(c)}
+                                title={c.url?"Ouvrir la formation chez l’organisme":"Pas encore de lien direct : voir la fiche"}>
+                                {c.url?"Lancer ↗":"Voir la fiche"}
+                              </button>
+                              <button className="sel-retirer" onClick={()=>retirerDuParcours(c)} aria-label={`Retirer ${c.title}`} title="Retirer de mon parcours">✕</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {parcours.length===0&&(
+                      <div style={{textAlign:"center",padding:".25rem 0 1.25rem"}}>
+                        <p style={{fontSize:".78rem",color:"var(--text2)",marginBottom:".75rem"}}>Aucune formation sélectionnée pour l’instant.</p>
+                        <button className="btn-secondary" style={{fontSize:".78rem"}} onClick={()=>nav("formations")}>Parcourir le catalogue</button>
+                      </div>
+                    )}
+
+                    {/* Formation réalisée — exemple */}
+                    <div style={{marginBottom:".5rem",fontSize:".6rem",fontWeight:700,color:"var(--text3)",textTransform:"uppercase",letterSpacing:".06em"}}>✅ Réalisée <span className="puce-demo" style={{marginLeft:".3rem"}}>Démo</span></div>
                     <div style={{display:"flex",alignItems:"center",gap:"12px",padding:".75rem",marginBottom:".75rem",background:"var(--green-lt)",borderRadius:"var(--r)",border:"1.5px solid #86efac"}}>
                       <span style={{fontSize:"1.4rem"}} aria-hidden="true">🔌</span>
                       <div style={{flex:1}}>
@@ -2727,7 +2920,7 @@ export default function App(){
                     </div>
 
                     {/* Formation en cours */}
-                    <div style={{marginBottom:".5rem",fontSize:".6rem",fontWeight:700,color:"var(--text3)",textTransform:"uppercase",letterSpacing:".06em"}}>⏳ En cours</div>
+                    <div style={{marginBottom:".5rem",fontSize:".6rem",fontWeight:700,color:"var(--text3)",textTransform:"uppercase",letterSpacing:".06em"}}>⏳ En cours <span className="puce-demo" style={{marginLeft:".3rem"}}>Démo</span></div>
                     <div style={{display:"flex",alignItems:"center",gap:"12px",padding:".75rem",marginBottom:"1rem",background:"var(--blue-lt)",borderRadius:"var(--r)",border:"1.5px solid var(--blue-md)"}}>
                       <span style={{fontSize:"1.4rem"}} aria-hidden="true">🏠</span>
                       <div style={{flex:1}}>
@@ -2741,28 +2934,6 @@ export default function App(){
                       <Logo id="schneider" h={14}/>
                     </div>
 
-                    {/* Formations ajoutées dynamiquement */}
-                    {parcours.length>0&&(
-                      <>
-                        <div style={{marginBottom:".5rem",fontSize:".6rem",fontWeight:700,color:"var(--text3)",textTransform:"uppercase",letterSpacing:".06em"}}>📌 Sélectionnées</div>
-                        {parcours.map(c=>(
-                          <div key={c.id} style={{display:"flex",alignItems:"center",gap:"12px",padding:".75rem 0",borderBottom:"1px solid var(--border)"}}>
-                            <span style={{fontSize:"1.4rem"}} aria-hidden="true">{c.emoji}</span>
-                            <div style={{flex:1}}>
-                              <div style={{fontSize:".82rem",fontWeight:700,color:"var(--text)"}}>{c.title}</div>
-                              <div style={{fontFamily:"'DM Mono',monospace",fontSize:".6rem",color:"var(--text2)"}}>{c.duration} · {c.format}</div>
-                            </div>
-                            <Logo id={c.source} h={16}/>
-                          </div>
-                        ))}
-                      </>
-                    )}
-                    {parcours.length===0&&(
-                      <div style={{textAlign:"center",padding:".5rem 0 .25rem"}}>
-                        <p style={{fontSize:".78rem",color:"var(--text2)",marginBottom:".75rem"}}>Explorez le catalogue pour ajouter d'autres formations.</p>
-                        <button className="btn-secondary" style={{fontSize:".78rem"}} onClick={()=>nav("formations")}>Parcourir le catalogue</button>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -2911,7 +3082,7 @@ export default function App(){
                     ["Parcours pédagogiques","Les parcours et leurs contenus sont réels et lus en base."],
                     ["Événements","Les événements affichés sont réels. L’inscription, elle, ne l’est pas encore."],
                     ["Financement","Les trois dispositifs décrits (CPF, OPCO, aides régionales) sont réels et à jour."],
-                    ["Compte et profil","Inscription et connexion fonctionnent sur le site comme dans l’application, avec le même compte. Les formations enregistrées sont synchronisées côté application ; côté site, le tableau de bord affiche encore des chiffres d’illustration."],
+                    ["Compte et profil","Inscription et connexion fonctionnent sur le site comme dans l’application, avec le même compte. Nom, métier, niveau et formations sélectionnées viennent du compte et sont partagés entre le site et l’application. Certifications, compétences, badges, CO₂ et historique restent des exemples, marqués « Démo »."],
                     ["Hotline fabricants (application)","Les numéros sont les numéros de support publics réels des fabricants. Un appel part vraiment."],
                     ["Bouton « Un retour ? »","Il enregistre réellement vos remarques. C’est lui qui alimente notre liste de corrections."],
                   ].map(([titre,txt])=>(

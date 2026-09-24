@@ -1647,8 +1647,70 @@ body {
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--text3);
-  cursor: not-allowed;
+  color: var(--blue);
+  cursor: pointer;
+}
+.peer-btn.on {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* Choix du canal, déplié sous la carte du pair. */
+.peer-bloc {
+  margin-bottom: 8px;
+}
+.peer-bloc .peer-card {
+  margin-bottom: 0;
+}
+.peer-contact {
+  margin-top: 6px;
+  background: var(--blue-light);
+  border: 1px solid var(--blue-mid);
+  border-radius: 11px;
+  padding: 10px 12px;
+}
+.peer-contact-actions {
+  display: flex;
+  gap: 8px;
+}
+.peer-contact-btn {
+  flex: 1;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 9px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--blue);
+  text-decoration: none;
+}
+.peer-contact-note {
+  margin-top: 7px;
+  font-size: 10.5px;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+/* Renvoi vers le site web, en pied de l'onglet Tutos. */
+.renvoi-site {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 6px;
+  padding: 12px 14px;
+  background: var(--blue-light);
+  border: 1px solid var(--blue-mid);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text2);
+  text-decoration: none;
+}
+.renvoi-site strong {
+  color: var(--blue);
 }
 
 .thread-card {

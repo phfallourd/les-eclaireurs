@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "../data/useCatalog";
 import CourseSheet from "../components/CourseSheet";
-import Lecteur, { idYouTube } from "../components/Lecteur";
+import Lecteur, { idYouTube, ouvrirPleinEcran } from "../components/Lecteur";
 import BackRow from "../components/BackRow";
 
 const BRAND_COLORS = {
@@ -97,21 +97,26 @@ function shortTheme(theme) {
   return map[theme] || theme;
 }
 
+/** Adresse du site web, où l'électricien choisit ses formations. */
+const SITE_URL = "https://les-eclaireurs-two.vercel.app/";
+
 /**
- * @param {"videos"|"training"} initialMode  Vue d'entrée selon la tuile cliquée.
+ * Onglet Tutos : uniquement les contenus courts, à regarder sur le chantier.
+ *
+ * L'onglet montrait aussi les formations longues, derrière une bascule
+ * « Vidéos courtes / Formations ». Choisir une formation (durée, prix,
+ * financement, organisme) se fait posément, sur le site web, pas entre deux
+ * interventions : l'application garde les tutos et renvoie vers le site pour
+ * le reste.
  */
-export default function Catalog({ onBack, go, initialMode = "videos" }) {
+export default function Catalog({ onBack }) {
   const { courses, themes, status, generatedAt } = useCatalog();
-  const [mode, setMode] = useState(initialMode);
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState("Tous");
   const [selected, setSelected] = useState(null);
   const [video, setVideo] = useState(null);
 
-  const pool = useMemo(
-    () => courses.filter((c) => (mode === "videos" ? isShort(c) : !isShort(c))),
-    [courses, mode]
-  );
+  const pool = useMemo(() => courses.filter(isShort), [courses]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -143,51 +148,17 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
     [themes, pool]
   );
 
-  /* Les deux modes sont deux écrans de l'application : « videos » et « catalog ».
-     Basculer sans le dire au conteneur laissait la barre du bas allumée sur le
-     mauvais onglet, l'historique désynchronisé, et la recherche précédente
-     active sur un contenu qui ne la contenait pas — d'où l'impression de bug
-     (remarque 10). On passe donc par la navigation, ce qui remonte l'écran
-     proprement. */
-  const switchMode = (next) => {
-    if (next === mode) return;
-    if (go) return go(next === "videos" ? "videos" : "catalog");
-    setMode(next);
-    setQuery("");
-    setTheme("Tous");
-  };
-
   return (
     <div className="view active">
       <div className="view-pad">
-        <BackRow
-          onBack={onBack}
-          title={mode === "videos" ? "Tutos vidéo" : "Formations"}
-        >
+        <BackRow onBack={onBack} title="Tutos vidéo">
           <span className="stat-chip">{pool.length}</span>
         </BackRow>
-
-        <div className="segmented">
-          <button
-            className={mode === "videos" ? "seg on" : "seg"}
-            onClick={() => switchMode("videos")}
-          >
-            Vidéos courtes
-          </button>
-          <button
-            className={mode === "training" ? "seg on" : "seg"}
-            onClick={() => switchMode("training")}
-          >
-            Formations
-          </button>
-        </div>
 
         <div className="input-row" style={{ marginBottom: 10 }}>
           <input
             className="ec-input"
-            placeholder={
-              mode === "videos" ? "Produit, marque…" : "Certification, marque…"
-            }
+            placeholder="Produit, marque, geste…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Rechercher"
@@ -263,20 +234,21 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
           </div>
         )}
 
-        {/* En mode vidéos, l'ordre est celui de la durée : on cherche d'abord
-            le geste rapide (remarque 13). En mode formations, l'ordre reste
-            celui du catalogue. */}
-        {(mode === "videos"
-          ? grouperParDuree(filtered)
-          : [{ titre: null, items: filtered }]
-        ).map((groupe) => (
+        {/* L'ordre est celui de la durée : on cherche d'abord le geste rapide
+            (remarque 13). */}
+        {grouperParDuree(filtered).map((groupe) => (
           <div key={groupe.titre || "tout"}>
             {groupe.titre && <div className="palier-titre">{groupe.titre}</div>}
             {groupe.items.map((c) => (
               <CardWrapper
                 key={c.id}
                 course={c}
-                onOpen={() => (idYouTube(c.url) ? setVideo(c) : setSelected(c))}
+                onOpen={() => {
+                  if (idYouTube(c.url)) {
+                    ouvrirPleinEcran(); // pendant le clic, sinon Safari refuse
+                    setVideo(c);
+                  } else setSelected(c);
+                }}
               >
                 <div className="tuto-thumb" style={{ background: c.thumbBg }}>
                   <span className="tt-emoji">{c.emoji}</span>
@@ -304,6 +276,20 @@ export default function Catalog({ onBack, go, initialMode = "videos" }) {
             ))}
           </div>
         ))}
+
+        <a
+          className="renvoi-site"
+          href={SITE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>
+            <strong>Choisir une formation complète ?</strong>
+            <br />
+            Durée, financement, organisme : tout est sur le site web.
+          </span>
+          <span aria-hidden="true">↗</span>
+        </a>
 
         {generatedAt && filtered.length > 0 && (
           <div className="catalog-stamp">

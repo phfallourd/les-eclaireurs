@@ -1,3 +1,4 @@
+import { useState } from "react";
 import BackRow from "../components/BackRow";
 
 /**
@@ -75,7 +76,38 @@ const THREADS = [
   },
 ];
 
+/**
+ * Message d'amorce proposé au pair. L'électricien le modifie librement dans
+ * son application de messagerie : on ne fait qu'éviter la page blanche.
+ */
+function amorce(p) {
+  const sujet = p.specialty.split("·")[0].trim();
+  return {
+    sujet: `Les Éclaireurs! — question ${sujet}`,
+    corps: `Bonjour ${p.name.split(" ")[0]},\n\nJe t'ai trouvé sur le réseau de pairs Les Éclaireurs!. J'ai une question sur un chantier ${sujet} : \n\nMerci d'avance !`,
+  };
+}
+
+/**
+ * « Contacter » ouvre l'application de messagerie du téléphone — e-mail ou
+ * SMS — avec un message déjà rédigé. Rien ne transite par nos serveurs.
+ *
+ * Les pairs affichés sont fictifs : le destinataire est laissé vide, à
+ * saisir. Quand les profils seront réels, `p.email` et `p.tel` seront remplis
+ * (avec l'accord du pair) et le lien les reprendra tels quels.
+ */
+function liensContact(p) {
+  const { sujet, corps } = amorce(p);
+  return {
+    email: `mailto:${p.email || ""}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`,
+    // « ?& » : forme comprise à la fois par iOS et par Android.
+    sms: `sms:${p.tel || ""}?&body=${encodeURIComponent(corps)}`,
+  };
+}
+
 export default function Community({ onBack }) {
+  const [ouvert, setOuvert] = useState(null);
+
   return (
     <div className="view active">
       <div className="view-pad">
@@ -90,7 +122,8 @@ export default function Community({ onBack }) {
 
         <div className="section-title">Électriciens à proximité</div>
         {PEERS.map((p) => (
-          <div key={p.id} className="peer-card">
+          <div key={p.id} className="peer-bloc">
+          <div className="peer-card">
             <div className="peer-avatar">
               {p.name.split(" ")[0][0]}
               {p.name.split(" ")[1]?.[0] || ""}
@@ -113,9 +146,30 @@ export default function Community({ onBack }) {
                 ))}
               </div>
             </div>
-            <button className="peer-btn" disabled title="Non disponible en démo">
-              Écrire
+            <button
+              className={`peer-btn ${ouvert === p.id ? "on" : ""}`}
+              onClick={() => setOuvert(ouvert === p.id ? null : p.id)}
+              aria-expanded={ouvert === p.id}
+            >
+              Contacter
             </button>
+          </div>
+          {ouvert === p.id && (
+            <div className="peer-contact">
+              <div className="peer-contact-actions">
+                <a className="peer-contact-btn" href={liensContact(p).email}>
+                  ✉️ E-mail
+                </a>
+                <a className="peer-contact-btn" href={liensContact(p).sms}>
+                  💬 SMS
+                </a>
+              </div>
+              <div className="peer-contact-note">
+                Message pré-rédigé, modifiable. Profil de démonstration : le
+                destinataire est à saisir.
+              </div>
+            </div>
+          )}
           </div>
         ))}
 
