@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCatalog } from "../data/useCatalog";
-import { matchCourses, DOMAIN_LABELS } from "../lib/matchCourses";
+import { matchCourses, DOMAIN_LABELS, DOMAIN_TO_THEME } from "../lib/matchCourses";
+import { lienFormations } from "../lib/site";
 import { isVoiceSupported, startDictation } from "../lib/speech";
 import BackRow from "../components/BackRow";
 import CourseSheet from "../components/CourseSheet";
@@ -119,9 +120,10 @@ export default function Assistant({ onBack, go, initialQuery = "" }) {
         {exchanges.length === 0 && (
           <>
             <p className="view-intro">
-              Décris ton chantier ou ton problème. L'assistant cherche les mots
-              de ta question dans le catalogue et te renvoie vers les vidéos et
-              formations correspondantes.
+              Pose ta question : un chantier, un produit, une norme, une
+              formation. L'assistant cherche les mots de ta question dans le
+              catalogue et te renvoie vers les tutos et les formations
+              correspondantes.
             </p>
             <div className="suggest-grid">
               {SUGGESTIONS.map((s) => (
@@ -190,6 +192,31 @@ export default function Assistant({ onBack, go, initialQuery = "" }) {
                 </>
               )}
 
+              {/* Se former sur le sujet de la question : c'est la sortie
+                  principale, et celle qui amène du trafic sur le site. Le
+                  thème détecté est transmis, l'électricien arrive donc
+                  directement sur les formations qui le concernent. */}
+              <a
+                className="cta-formation"
+                href={lienFormations({
+                  theme: DOMAIN_TO_THEME[e.domains[0]],
+                  recherche: e.domains.length ? undefined : e.question,
+                  origine: "assistant",
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="cta-formation-ico" aria-hidden="true">🎓</span>
+                <span className="cta-formation-txt">
+                  <strong>
+                    Te former
+                    {e.domains.length ? ` : ${DOMAIN_LABELS[e.domains[0]] || e.domains[0]}` : " sur ce sujet"}
+                  </strong>
+                  <span>Formations complètes, durée et financement sur le site</span>
+                </span>
+                <span aria-hidden="true">↗</span>
+              </a>
+
               {/* Trois portes de sortie : se former, demander à un pair,
                   ou appeler le fabricant si le problème est produit. */}
               <div className="bot-section">Et maintenant</div>
@@ -238,7 +265,7 @@ export default function Assistant({ onBack, go, initialQuery = "" }) {
         <div className="input-row">
           <input
             className="ec-input"
-            placeholder="Décris ton chantier…"
+            placeholder="Ta question…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && ask(input)}

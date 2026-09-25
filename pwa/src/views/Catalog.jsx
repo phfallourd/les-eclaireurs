@@ -3,6 +3,7 @@ import { useCatalog } from "../data/useCatalog";
 import CourseSheet from "../components/CourseSheet";
 import Lecteur, { idYouTube, ouvrirPleinEcran } from "../components/Lecteur";
 import BackRow from "../components/BackRow";
+import { lienFormations } from "../lib/site";
 
 const BRAND_COLORS = {
   schneider: "#3db83d",
@@ -97,8 +98,6 @@ function shortTheme(theme) {
   return map[theme] || theme;
 }
 
-/** Adresse du site web, où l'électricien choisit ses formations. */
-const SITE_URL = "https://les-eclaireurs-two.vercel.app/";
 
 /**
  * Onglet Tutos : uniquement les contenus courts, à regarder sur le chantier.
@@ -190,6 +189,25 @@ export default function Catalog({ onBack }) {
           ))}
         </div>
 
+        {/* Renvoi vers le site, en tête de liste et non plus en pied : c'est
+            là que l'électricien choisit une formation complète. Le thème
+            sélectionné est transmis. */}
+        <a
+          className="cta-formation"
+          href={lienFormations({ theme: theme !== "Tous" ? theme : undefined, origine: "tutos" })}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="cta-formation-ico" aria-hidden="true">🎓</span>
+          <span className="cta-formation-txt">
+            <strong>
+              Choisir une formation complète{theme !== "Tous" ? ` : ${shortTheme(theme)}` : ""}
+            </strong>
+            <span>Durée, financement, organisme : tout est sur le site</span>
+          </span>
+          <span aria-hidden="true">↗</span>
+        </a>
+
         <div className="result-line">
           {filtered.length === 0
             ? "Aucun résultat"
@@ -277,19 +295,6 @@ export default function Catalog({ onBack }) {
           </div>
         ))}
 
-        <a
-          className="renvoi-site"
-          href={SITE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span>
-            <strong>Choisir une formation complète ?</strong>
-            <br />
-            Durée, financement, organisme : tout est sur le site web.
-          </span>
-          <span aria-hidden="true">↗</span>
-        </a>
 
         {generatedAt && filtered.length > 0 && (
           <div className="catalog-stamp">

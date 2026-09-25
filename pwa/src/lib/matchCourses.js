@@ -31,10 +31,10 @@ const SYNONYMS = {
 };
 
 /** Thème du catalogue correspondant à chaque famille de vocabulaire. */
-const DOMAIN_TO_THEME = {
+export const DOMAIN_TO_THEME = {
   irve: "IRVE",
   pac: "PAC / Pompes à chaleur",
-  domotique: "Domotique / Wiser",
+  domotique: "Domotique", // renommé le 11/09 : l'ancien libellé ne correspondait plus à rien
   tgbt: "TGBT Intelligent",
   solaire: "Solaire PV",
   gtb: "GTB / GTC",

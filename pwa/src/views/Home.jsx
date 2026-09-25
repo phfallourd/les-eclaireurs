@@ -72,7 +72,7 @@ export default function Home({ go, onAsk }) {
                 {profile.name ? `Bonjour ${profile.name.split(" ")[0]}` : "Assistant terrain"}
               </div>
               <div className="agent-sub">
-                Quel produit dois-tu installer aujourd'hui ?
+                Sur quoi porte ta question aujourd'hui ?
               </div>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function Home({ go, onAsk }) {
           <div className="input-row">
             <input
               className="ec-input"
-              placeholder="Ex : borne 22 kW en copro, PAC air/eau…"
+              placeholder="Ex : borne 22 kW en copro, formation PAC, norme…"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()}
