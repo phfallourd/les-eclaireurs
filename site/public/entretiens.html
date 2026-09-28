@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Entretiens testeurs · Les Éclaireurs!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --bg:#F0F2F7; --card:#FFFFFF; --blue:#2563EB; --blue-soft:#EFF4FF; --orange:#F97316; --orange-soft:#FFF4EC;
+  --text:#1E293B; --muted:#64748B; --line:#E2E8F0; --ok:#16A34A; --err:#DC2626;
+  --radius:14px; --shadow:0 1px 2px rgba(15,23,42,.05),0 4px 16px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+header.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.top-in{max-width:880px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.brand{font-weight:700;font-size:17px;white-space:nowrap}
+.brand b{color:var(--blue)} .brand i{font-style:normal;color:var(--orange)}
+.top-sub{color:var(--muted);font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linkbtn{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:6px}
+main{max-width:880px;margin:0 auto;padding:16px 16px 120px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:18px;margin:0 0 4px}
+.lead{color:var(--muted);margin:0 0 16px;font-size:15px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 16px;font-weight:600;cursor:pointer;min-height:44px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.msg{font-size:14px;margin-top:10px}.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+/* Liste */
+.list-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;min-width:0}
+.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:13px}
+.item{display:flex;gap:12px;align-items:center;background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:14px;margin-bottom:10px;cursor:pointer;border:1px solid transparent}
+.item:hover{border-color:var(--blue)}
+.code{font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:8px;padding:4px 8px;font-size:14px}
+.item .who{flex:1;min-width:0}.item .who b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .who span{color:var(--muted);font-size:13px}
+.badge{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.b-draft{background:var(--orange-soft);color:#C2410C}.b-done{background:#DCFCE7;color:#15803D}
+.empty{text-align:center;color:var(--muted);padding:32px 16px}
+/* Formulaire */
+.formbar{position:sticky;top:57px;z-index:15;background:var(--bg);padding:8px 0 10px;margin:-16px -16px 8px;padding-left:16px;padding-right:16px}
+.formbar-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.save-state{font-size:13px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.progress{height:6px;background:#E2E8F0;border-radius:6px;overflow:hidden;flex:1;max-width:160px}
+.progress i{display:block;height:100%;background:var(--blue);width:0;transition:width .3s}
+.nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;text-decoration:none;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500}
+.nav a.done{color:var(--blue);border-color:#BFD3FB}
+section.card{scroll-margin-top:140px}
+.sec-num{color:var(--orange);font-weight:700;margin-right:6px}
+.hint{color:var(--muted);font-size:14px;margin:0 0 16px}
+.field{margin-bottom:18px}
+.field>label,.field>.lab{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
+.field .help{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
+.req{color:var(--err)}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],input[type=password],select,textarea{
+  width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;min-height:44px;font-size:16px}
+textarea{min-height:88px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid #BFD3FB;border-color:var(--blue)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media (max-width:600px){.stat b{font-size:19px}.stat span{font-size:12px}.scale .chip{width:40px}.grid2{grid-template-columns:1fr}.card{padding:16px}.formbar{top:53px}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer;min-height:38px;user-select:none}
+.chip[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip.multi[aria-pressed=true]{background:var(--blue-soft);color:var(--blue);border-color:var(--blue);font-weight:600}
+.scale{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.scale .chip{width:46px;padding:8px 0;text-align:center}
+.scale small{color:var(--muted);font-size:12px}
+.pct{display:grid;grid-template-columns:1fr 90px;gap:8px 12px;align-items:center}
+.pct label{font-size:14px}
+.pct-total{font-size:13px;margin-top:6px;color:var(--muted)}.pct-total.bad{color:var(--err)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;border:1px solid var(--line);border-radius:10px;padding:6px;background:#fff}
+.tags input{border:0;flex:1;min-width:140px;min-height:34px;padding:4px 6px;outline:none}
+.tag{background:var(--orange-soft);color:#C2410C;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;display:inline-flex;align-items:center;gap:4px}
+.tag button{border:0;background:none;color:inherit;cursor:pointer;font-size:16px;line-height:1;padding:2px 6px}
+.contact{display:grid;grid-template-columns:1.2fr 1.2fr 1fr;gap:8px;margin-bottom:8px}
+@media (max-width:600px){.contact{grid-template-columns:1fr;padding:10px;border:1px dashed var(--line);border-radius:10px}}
+.consent{background:var(--blue-soft);border-radius:12px;padding:14px;font-size:14px;margin-bottom:16px}
+.consent p{margin:0 0 10px}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:600;cursor:pointer}
+.check input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--blue)}
+.autre{margin-top:8px}
+.actions{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);z-index:20;padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.actions-in{max-width:880px;margin:0 auto;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.actions .btn{flex:1;max-width:260px}
+.danger{color:var(--err)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brand"><b>Les Éclaireurs</b><i>!</i></div>
+  <div class="top-sub" id="topSub">Entretiens testeurs</div>
+  <button class="linkbtn hidden" id="btnLogout" type="button">Déconnexion</button>
+</div></header>
+
+<main>
+  <!-- Connexion -->
+  <div id="vLogin" class="card hidden" style="max-width:440px;margin:24px auto">
+    <h1>Entretiens testeurs</h1>
+    <p class="lead">Espace réservé aux fondateurs. Connectez-vous avec votre compte Les Éclaireurs!.</p>
+    <form id="fLogin">
+      <div class="field"><label for="lEmail">E-mail</label><input type="email" id="lEmail" autocomplete="username" required></div>
+      <div class="field"><label for="lPwd">Mot de passe</label><input type="password" id="lPwd" autocomplete="current-password" required minlength="8"></div>
+      <div class="row">
+        <button class="btn btn-primary" type="submit">Se connecter</button>
+        <button class="btn btn-ghost" type="button" id="btnSignup">Créer mon compte</button>
+      </div>
+      <div class="msg" id="loginMsg"></div>
+    </form>
+  </div>
+
+  <!-- Non autorisé -->
+  <div id="vDenied" class="card hidden" style="max-width:520px;margin:24px auto">
+    <h2>Accès non encore activé</h2>
+    <p class="lead">Votre compte (<span id="deniedEmail"></span>) est bien connecté, mais il n'est pas encore dans l'équipe autorisée à saisir les entretiens. Demandez à un administrateur de vous ajouter, puis rechargez la page.</p>
+    <button class="btn btn-ghost" type="button" onclick="location.reload()">Recharger</button>
+  </div>
+
+  <!-- Liste -->
+  <div id="vList" class="hidden">
+    <div class="list-head">
+      <div><h1>Entretiens testeurs</h1><p class="lead" style="margin:0">Entretiens préalables avec les électriciens de la phase pilote.</p></div>
+      <div class="row">
+        <button class="btn btn-ghost" type="button" id="btnCsv">Exporter CSV</button>
+        <button class="btn btn-orange" type="button" id="btnNew">+ Nouvel entretien</button>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="list"></div>
+  </div>
+
+  <!-- Formulaire -->
+  <div id="vForm" class="hidden">
+    <div class="formbar">
+      <div class="formbar-top">
+        <button class="btn btn-ghost" type="button" id="btnBack" style="min-height:36px;padding:6px 12px">← Liste</button>
+        <span class="code" id="fCode">Nouveau</span>
+        <div class="progress" title="Taux de remplissage"><i id="fProg"></i></div>
+        <span class="save-state" id="saveState">Non enregistré</span>
+      </div>
+      <nav class="nav" id="nav"></nav>
+    </div>
+    <form id="fForm" autocomplete="off" novalidate></form>
+  </div>
+</main>
+
+<div class="actions hidden" id="actions"><div class="actions-in">
+  <button class="btn btn-ghost" type="button" id="btnSave">Enregistrer le brouillon</button>
+  <button class="btn btn-primary" type="button" id="btnDone">Marquer terminé</button>
+</div></div>
+
+<script>
+/* =================== Configuration =================== */
+const SUPABASE_URL = 'https://eutjonpxqoxldrkhxjzt.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_EJr8VnCNYyJGFFTwH81JlQ_-ithQD1C';
+const QUESTIONNAIRE_VERSION = 'v1';
+
+const FREQ = ['Jamais','Occasionnel','Régulier','Cœur de métier'];
+const CONNAIT = ['Oui, précisément','Vaguement','Non'];
+
+/* col:true => colonne de la table ; sinon stocké dans reponses (jsonb) */
+const SECTIONS = [
+ {id:'meta', titre:'Entretien', hint:'À remplir en début d\'appel. La fiche ne peut pas être enregistrée sans le consentement de l\'électricien.', fields:[
+   {k:'consentement_rgpd', col:true, t:'consent'},
+   {k:'intervieweur_nom', col:true, t:'text', l:'Intervieweur', req:true, list:'intervieweurs'},
+   {k:'date_entretien', col:true, t:'date', l:'Date de l\'entretien', req:true, half:true},
+   {k:'mode_entretien', col:true, t:'radio', l:'Mode', o:[['telephone','Téléphone'],['visio','Visio'],['presentiel','Présentiel']], half:true},
+   {k:'duree_min', col:true, t:'number', l:'Durée (minutes)', half:true, min:0, max:600},
+ ]},
+ {id:'profil', titre:'Qui est-il ?', hint:'Localisation, statut, expérience et formation.', fields:[
+   {k:'prenom', col:true, t:'text', l:'Prénom', half:true},
+   {k:'nom', col:true, t:'text', l:'Nom', half:true},
+   {k:'telephone', col:true, t:'tel', l:'Téléphone', half:true},
+   {k:'email', col:true, t:'email', l:'E-mail', half:true, help:'Sert à lui ouvrir l\'accès au site et à l\'app.'},
+   {k:'entreprise', col:true, t:'text', l:'Entreprise', half:true},
+   {k:'commune', col:true, t:'text', l:'Commune', half:true},
+   {k:'departement', col:true, t:'text', l:'Département (n°)', half:true, ph:'ex. 78'},
+   {k:'experience_annees', col:true, t:'number', l:'Années d\'expérience', half:true, min:0, max:60},
+   {k:'statut_pro', col:true, t:'radio', l:'Statut', o:[['independant','À son compte'],['gerant','Gérant d\'entreprise'],['salarie','Salarié'],['apprenti','Apprenti / alternant'],['autre','Autre']]},
+   {k:'taille_structure', t:'radio', l:'Taille de la structure', o:['Seul','2 à 5','6 à 20','Plus de 20']},
+   {k:'formation_initiale', t:'multi', l:'Formation initiale', o:['CAP / BEP','Bac pro','BP','BTS / DUT','Licence / ingénieur','Reconversion adulte'], autre:true},
+   {k:'qualifications', t:'multi', l:'Qualifications / certifications détenues', o:['Habilitation électrique','IRVE','QualiPAC','QualiPV','RGE','Qualifelec'], autre:true},
+   {k:'profil_commentaire', t:'textarea', l:'Commentaire profil'},
+   {k:'profil_id', col:true, t:'profil', l:'Compte sur la plateforme', help:'À relier une fois son compte testeur créé.'},
+ ]},
+ {id:'activite', titre:'Son activité', hint:'Clientèle, répartition du temps, spécialités, carnet de commandes.', fields:[
+   {k:'clientele', t:'multi', l:'Types de clients', o:['Particuliers','Entreprises / tertiaire','Industrie','Collectivités / public','Bailleurs / syndics','Sous-traitance'], autre:true},
+   {k:'part_particuliers_pct', t:'number', l:'Part des particuliers dans son activité (%)', min:0, max:100, half:true},
+   {k:'repartition_temps', t:'pct', l:'Répartition de son temps de travail (%)', o:[['neuf','Installation neuve'],['renovation','Rénovation'],['depannage','Dépannage / maintenance'],['admin','Administratif / devis'],['autre','Autre']]},
+   {k:'activite_irve', t:'radio', l:'Bornes de recharge (IRVE)', o:FREQ},
+   {k:'activite_compteurs', t:'radio', l:'Compteurs / tableaux / raccordement', o:FREQ},
+   {k:'activite_pac', t:'radio', l:'Pompes à chaleur (PAC)', o:FREQ},
+   {k:'activite_pv', t:'radio', l:'Photovoltaïque', o:FREQ},
+   {k:'carnet_commandes', t:'radio', l:'Carnet de commandes', o:['Moins de 2 semaines','2 semaines à 1 mois','1 à 3 mois','Plus de 3 mois','Refuse des chantiers']},
+   {k:'activite_commentaire', t:'textarea', l:'Commentaire activité'},
+ ]},
+ {id:'quotidien', titre:'Besoins et contraintes', hint:'Aller au-delà de la formation : ce qui est pénible, ce qui l\'aiderait au quotidien.', fields:[
+   {k:'pain_points', t:'multi', l:'Points pénibles cités', o:['Administratif / devis / factures','Recherche d\'info technique','Évolution des normes','Approvisionnement / délais','Recrutement','Relation client / impayés','Planning / déplacements','Pénibilité physique','Isolement','Concurrence / prix'], autre:true},
+   {k:'pain_points_top', t:'textarea', l:'Ses 3 irritants principaux (verbatim)'},
+   {k:'facilitateurs', t:'textarea', l:'Ce qui pourrait faciliter son quotidien (verbatim)'},
+ ]},
+ {id:'pairs', titre:'Interactions avec ses pairs', hint:'Besoin, fréquence, organisation de la branche, rencontres fabricants, concurrence.', fields:[
+   {k:'pairs_besoin', t:'scale', l:'Besoin d\'échanger avec d\'autres électriciens', lo:'Aucun', hi:'Très fort'},
+   {k:'pairs_frequence', t:'radio', l:'Fréquence actuelle des échanges', o:['Jamais','Quelques fois par an','Mensuelle','Hebdomadaire','Quotidienne']},
+   {k:'pairs_canaux', t:'multi', l:'Où échange-t-il ?', o:['Collègues / anciens collègues','Groupes Facebook','WhatsApp','Forums','Fédération / syndicat','Rencontres fabricants / distributeurs','Salons'], autre:true},
+   {k:'pairs_concurrence', t:'scale', l:'Sentiment de concurrence entre électriciens', lo:'Aucun', hi:'Très fort'},
+   {k:'pairs_commentaire', t:'textarea', l:'Commentaire'},
+ ]},
+ {id:'formation', titre:'Formation', hint:'Fréquence, besoin ressenti face aux évolutions (électrification, digitalisation), qualifications visées.', fields:[
+   {k:'derniere_formation', t:'radio', l:'Dernière formation suivie', o:['Moins d\'un an','1 à 3 ans','Plus de 3 ans','Aucune depuis la formation initiale']},
+   {k:'formation_frequence', t:'radio', l:'Fréquence habituelle', o:['Plusieurs fois par an','1 fois par an','Tous les 2-3 ans','Rarement / jamais']},
+   {k:'formation_besoin', t:'scale', l:'Besoin ressenti face aux évolutions du métier', lo:'Faible', hi:'Fort'},
+   {k:'formation_themes', t:'multi', l:'Thèmes prioritaires', o:['IRVE','PAC','Photovoltaïque / autoconsommation','Pilotage énergétique / domotique','NF C 15-100','Habilitations / sécurité','Outils numériques','Gestion d\'entreprise / devis','Relation client'], autre:true},
+   {k:'formation_freins', t:'multi', l:'Freins à la formation', o:['Temps / perte de CA','Coût','Distance','Offre peu lisible','Qualité inégale','Pas de besoin'], autre:true},
+   {k:'opportunites', t:'textarea', l:'Opportunités perçues (électrification, digitalisation)'},
+   {k:'certifications_visees', t:'text', l:'Qualifications / certifications visées'},
+ ]},
+ {id:'aides', titre:'Aides', hint:'Aides à la formation pour lui, aides pour ses clients (PAC, IRVE…).', fields:[
+   {k:'aides_formation_connaissance', t:'radio', l:'Connaît les aides à la formation pour lui-même', o:CONNAIT},
+   {k:'aides_formation_citees', t:'multi', l:'Aides formation citées', o:['CPF','FAFCEA','OPCO (Constructys…)','Aides régionales','France Travail'], autre:true},
+   {k:'aides_clients_connaissance', t:'radio', l:'Connaît les aides pour ses clients', o:CONNAIT},
+   {k:'aides_clients_citees', t:'multi', l:'Aides clients citées', o:['MaPrimeRénov\'','CEE / Coup de pouce','Programme Advenir (IRVE)','Crédit d\'impôt borne','Éco-PTZ','TVA réduite'], autre:true},
+   {k:'aides_commentaire', t:'textarea', l:'Commentaire'},
+ ]},
+ {id:'outils', titre:'Outils de travail', hint:'Ordinateur, papier, téléphone, logiciels.', fields:[
+   {k:'outils', t:'multi', l:'Outils utilisés au quotidien', o:['Smartphone','Tablette','Ordinateur','Papier / carnet'], autre:true},
+   {k:'logiciels', t:'text', l:'Logiciels / applis métier (devis, facturation, calcul…)'},
+   {k:'aisance_numerique', t:'scale', l:'Aisance avec le numérique', lo:'Faible', hi:'Forte'},
+ ]},
+ {id:'info', titre:'Sources d\'information', hint:'IA, Google, Facebook, groupes, sites et applis consultés.', fields:[
+   {k:'sources_info', t:'multi', l:'Où cherche-t-il l\'information ?', o:['Google','YouTube','IA (ChatGPT…)','Groupes Facebook','Forums','Sites / applis fabricants','Distributeur / comptoir','Collègues','Documentation papier'], autre:true},
+   {k:'usage_ia', t:'radio', l:'Usage de l\'IA', o:['Jamais','A déjà essayé','Occasionnel','Régulier']},
+   {k:'sites_cites', t:'textarea', l:'Sites, groupes et applis cités (noms précis)', ph:'ex. Fiers d\'être électricien…'},
+ ]},
+ {id:'reaction', titre:'Réaction à la plateforme', hint:'Présentation non orientée. Noter la réaction à chaud et les mots qu\'il emploie (utile pour le référencement Google).', fields:[
+   {k:'reaction_verbatim', t:'textarea', l:'Réaction à chaud (verbatim)'},
+   {k:'mots_cles', t:'tags', l:'Mots-clés employés', help:'Taper un mot puis Entrée.'},
+ ]},
+ {id:'usage', titre:'Usage envisagé', hint:'Pourquoi irait-il, à quelle fréquence, ce qui manque, ce qu\'il préfère, contribution.', fields:[
+   {k:'motivations', t:'textarea', l:'Pourquoi irait-il sur la plateforme ?'},
+   {k:'frequence_envisagee', t:'radio', l:'Fréquence d\'usage envisagée', o:['Quotidienne','Hebdomadaire','Mensuelle','Au besoin','Pas du tout']},
+   {k:'manques', t:'textarea', l:'Ce qui manque'},
+   {k:'prefere', t:'textarea', l:'Ce qu\'il préfère'},
+   {k:'contribution', t:'radio', l:'Se verrait-il contribuer ?', o:['Oui','Peut-être','Non']},
+   {k:'contribution_forme', t:'multi', l:'Sous quelle forme ?', o:['Tutos vidéo','Réponses sur le forum','Hotline entre pairs','Avis sur les formations'], autre:true},
+ ]},
+ {id:'suite', titre:'Recommandations et suites', hint:'Collègues à contacter, accord pour la suite, rendez-vous de retour.', fields:[
+   {k:'collegues', t:'contacts', l:'3 collègues à contacter de sa part', n:3},
+   {k:'collegues_accord', t:'check', l:'Il accepte que nous les contactions en citant son nom'},
+   {k:'ok_sollicitation', col:true, t:'bool', l:'OK pour être sollicité sur les prochaines évolutions'},
+   {k:'ok_retours_plateforme', col:true, t:'bool', l:'OK pour faire des retours directement dans la plateforme'},
+   {k:'rdv_suivi', col:true, t:'date', l:'RDV de retour sur la plateforme (≈ 2 semaines)', half:true},
+   {k:'acces_envoye', col:true, t:'check', l:'Accès au site et à l\'app envoyés'},
+   {k:'notes_intervieweur', col:true, t:'textarea', l:'Notes libres de l\'intervieweur'},
+ ]},
+];
+const ALL_FIELDS = SECTIONS.flatMap(s => s.fields);
+const COLS = ALL_FIELDS.filter(f => f.col).map(f => f.k);
+
+/* =================== État =================== */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let session = null, me = null, rows = [], profils = [];
+let cur = null;          // enregistrement en cours d'édition
+let dirty = false, saving = false, timer = null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'}) : '';
+const safeLS = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+
+function show(view){
+  ['vLogin','vDenied','vList','vForm'].forEach(v => $('#'+v).classList.toggle('hidden', v !== view));
+  $('#actions').classList.toggle('hidden', view !== 'vForm');
+  $('#btnLogout').classList.toggle('hidden', view === 'vLogin');
+  window.scrollTo(0,0);
+}
+
+/* =================== Authentification =================== */
+async function boot(){
+  const { data } = await sb.auth.getSession();
+  session = data.session;
+  if (!session) return show('vLogin');
+  const { data: ok, error } = await sb.rpc('peut_gerer_entretiens');
+  if (error || !ok){ $('#deniedEmail').textContent = session.user.email; return show('vDenied'); }
+  const { data: p } = await sb.from('profils').select('id, nom_complet, email, role').order('nom_complet');
+  profils = p || [];
+  me = profils.find(x => x.id === session.user.id) || { nom_complet: session.user.email };
+  $('#topSub').textContent = 'Entretiens testeurs · ' + (me.nom_complet || session.user.email);
+  await loadList();
+  const pending = safeLS.get('entretien_brouillon');
+  if (pending && pending.uid === session.user.id && confirm('Une saisie non enregistrée a été retrouvée sur cet appareil. La reprendre ?')) {
+    openForm(pending.rec);
+    dirty = true; setState('Modifications locales non enregistrées');
+  }
+}
+$('#fLogin').addEventListener('submit', async e => {
+  e.preventDefault();
+  const m = $('#loginMsg'); m.className = 'msg'; m.textContent = 'Connexion…';
+  const { error } = await sb.auth.signInWithPassword({ email: $('#lEmail').value.trim(), password: $('#lPwd').value });
+  if (error){ m.className = 'msg err'; m.textContent = error.message.includes('Invalid') ? 'E-mail ou mot de passe incorrect.' : error.message; return; }
+  boot();
+});
+$('#btnSignup').addEventListener('click', async () => {
+  const m = $('#loginMsg'), email = $('#lEmail').value.trim(), pwd = $('#lPwd').value;
+  if (!email || pwd.length < 8){ m.className = 'msg err'; m.textContent = 'Saisissez un e-mail et un mot de passe (8 caractères minimum).'; return; }
+  const { data, error } = await sb.auth.signUp({ email, password: pwd, options: { data: { role: 'apprenant' } } });
+  if (error){ m.className = 'msg err'; m.textContent = error.message; return; }
+  m.className = 'msg ok';
+  m.textContent = data.session ? 'Compte créé.' : 'Compte créé. Confirmez votre e-mail via le lien reçu, puis connectez-vous.';
+  if (data.session) boot();
+});
+$('#btnLogout').addEventListener('click', async () => {
+  if (dirty && !confirm('Des modifications ne sont pas enregistrées. Se déconnecter quand même ?')) return;
+  await sb.auth.signOut(); location.reload();
+});
+
+/* =================== Liste =================== */
+async function loadList(){
+  const { data, error } = await sb.from('entretiens').select('*').order('date_entretien', {ascending:false}).order('created_at', {ascending:false});
+  if (error){ alertMsg(error.message); return; }
+  rows = data || [];
+  renderList(); show('vList');
+}
+function completion(rec){
+  const fs = ALL_FIELDS.filter(f => !['consent','profil','check'].includes(f.t));
+  const filled = fs.filter(f => { const v = getVal(rec, f.k); return Array.isArray(v) ? v.some(x => x && (typeof x !== 'object' || Object.values(x).some(Boolean))) : (v && typeof v === 'object') ? Object.values(v).some(x => x !== '' && x != null) : (v !== '' && v != null); }).length;
+  return Math.round(100 * filled / fs.length);
+}
+function renderList(){
+  const done = rows.filter(r => r.statut === 'termine').length;
+  const n = new Set(rows.map(r => r.intervieweur_nom)).size;
+  $('#stats').innerHTML =
+    `<div class="stat"><b>${rows.length}</b><span>entretiens</span></div>` +
+    `<div class="stat"><b>${done}</b><span>terminés</span></div>` +
+    `<div class="stat"><b>${rows.length - done}</b><span>brouillons</span></div>` +
+    `<div class="stat"><b>${n}</b><span>intervieweur${n > 1 ? 's' : ''}</span></div>`;
+  $('#list').innerHTML = rows.length ? rows.map(r => `
+    <div class="item" data-id="${r.id}" role="button" tabindex="0">
+      <span class="code">${esc(r.code_testeur)}</span>
+      <div class="who"><b>${esc([r.prenom, r.nom].filter(Boolean).join(' ') || '(sans nom)')}${r.entreprise ? ' · ' + esc(r.entreprise) : ''}</b>
+        <span>${fmtDate(r.date_entretien)} · ${esc(r.intervieweur_nom)}${r.departement ? ' · ' + esc(r.departement) : ''} · ${completion(r)} % rempli</span></div>
+      <span class="badge ${r.statut === 'termine' ? 'b-done' : 'b-draft'}">${r.statut === 'termine' ? 'Terminé' : 'Brouillon'}</span>
+    </div>`).join('')
+    : '<div class="card empty">Aucun entretien pour l\'instant.<br>Cliquez sur « Nouvel entretien » pour commencer.</div>';
+  document.querySelectorAll('.item').forEach(el => {
+    const open = () => openForm(structuredClone(rows.find(r => r.id === el.dataset.id)));
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+  });
+}
+$('#btnNew').addEventListener('click', () => openForm({
+  statut:'brouillon', questionnaire_version: QUESTIONNAIRE_VERSION, consentement_rgpd:false,
+  intervieweur_nom: me?.nom_complet || '', date_entretien: today(), mode_entretien:'telephone', acces_envoye:false, reponses:{}
+}));
+
+/* =================== Valeurs =================== */
+function getVal(rec, k){ return COLS.includes(k) ? rec[k] : (rec.reponses || {})[k]; }
+function setVal(k, v){
+  if (COLS.includes(k)) cur[k] = v; else { cur.reponses = cur.reponses || {}; if (v === '' || v == null || (Array.isArray(v) && !v.length)) delete cur.reponses[k]; else cur.reponses[k] = v; }
+  markDirty();
+}
+
+/* =================== Formulaire =================== */
+function openForm(rec){
+  cur = rec; dirty = false;
+  $('#fCode').textContent = rec.code_testeur || 'Nouveau';
+  setState(rec.id ? 'Enregistré' : 'Non enregistré');
+  $('#nav').innerHTML = SECTIONS.map((s,i) => `<a href="#s-${s.id}" data-sec="${s.id}">${i}. ${esc(s.titre)}</a>`).join('');
+  const intervs = [...new Set([me?.nom_complet, ...rows.map(r => r.intervieweur_nom)].filter(Boolean))];
+  $('#fForm').innerHTML = `<datalist id="intervieweurs">${intervs.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` +
+    SECTIONS.map((s,i) => `<section class="card" id="s-${s.id}"><h2><span class="sec-num">${i}.</span>${esc(s.titre)}</h2><p class="hint">${esc(s.hint)}</p>${renderFields(s.fields)}</section>`).join('') +
+    (rec.id ? `<p style="text-align:center;color:var(--muted);font-size:13px">Créé le ${new Date(rec.created_at).toLocaleString('fr-FR')} · conservation jusqu'au ${fmtDate(rec.conserver_jusqu_au)}</p>` : '');
+  bindFields();
+  refreshMeta();
+  $('#btnDone').textContent = rec.statut === 'termine' ? 'Repasser en brouillon' : 'Marquer terminé';
+  show('vForm');
+}
+function renderFields(fields){
+  let html = '', buf = [];
+  const flush = () => { if (buf.length){ html += `<div class="grid2">${buf.join('')}</div>`; buf = []; } };
+  fields.forEach(f => { const h = renderField(f); if (f.half) buf.push(h); else { flush(); html += h; } });
+  flush(); return html;
+}
+function optPairs(o){ return o.map(x => Array.isArray(x) ? x : [x, x]); }
+function renderField(f){
+  const v = getVal(cur, f.k), id = 'f_' + f.k;
+  const lab = `${esc(f.l)}${f.req ? ' <span class="req">*</span>' : ''}${f.help ? `<span class="help">${esc(f.help)}</span>` : ''}`;
+  switch (f.t){
+    case 'consent': return `<div class="consent"><p><b>À lire à l'électricien :</b> « Les informations que vous nous donnez pendant cet entretien sont enregistrées par l'équipe Les Éclaireurs! uniquement pour analyser les besoins des électriciens pendant la phase de test. Elles ne sont ni vendues ni cédées, sont conservées 12 mois au plus, et vous pouvez à tout moment demander à les consulter, les corriger ou les supprimer. Êtes-vous d'accord ? »</p>
+      <label class="check"><input type="checkbox" id="${id}" data-k="${f.k}" data-t="check" ${v ? 'checked' : ''} ${cur.id ? 'disabled' : ''}> L'électricien a donné son accord oral <span class="req">*</span></label></div>`;
+    case 'text': case 'email': case 'tel': case 'date': case 'number':
+      return `<div class="field"><label for="${id}">${lab}</label><input type="${f.t}" id="${id}" data-k="${f.k}" data-t="${f.t}" value="${esc(v ?? '')}" ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.list ? `list="${f.list}"` : ''} ${f.min != null ? `min="${f.min}" max="${f.max}" inputmode="numeric"` : ''}></div>`;
+    case 'textarea':
+      return `<div class="field"><label for="${id}">${lab}</label><textarea id="${id}" data-k="${f.k}" data-t="textarea" ${f.ph ? `placeholder="${esc(f.ph)}"` : ''}>${esc(v ?? '')}</textarea></div>`;
+    case 'radio':
+      return `<div class="field"><span class="lab">${lab}</span><div class="chips" data-k="${f.k}" data-t="radio">${optPairs(f.o).map(([val,l]) => `<button type="button" class="chip" data-v="${esc(val)}" aria-pressed="${v === val}">${esc(l)}</button>`).join('')}</div></div>`;
+    case 'bool':
+      return `<div class="field"><span class="lab">${lab}</span><div class="chips" data-k="${f.k}" data-t="bool">${[['true','Oui'],['false','Non']].map(([val,l]) => `<button type="button" class="chip" data-v="${val}" aria-pressed="${String(v) === val}">${l}</button>`).join('')}</div></div>`;
+    case 'check':
+      return `<div class="field"><label class="check"><input type="checkbox" id="${id}" data-k="${f.k}" data-t="check" ${v ? 'checked' : ''}> ${esc(f.l)}</label></div>`;
+    case 'multi': {
+      const arr = Array.isArray(v) ? v : [];
+      const autreV = getVal(cur, f.k + '_autre') || '';
+      return `<div class="field"><span class="lab">${lab}</span><div class="chips" data-k="${f.k}" data-t="multi">${f.o.map(o => `<button type="button" class="chip multi" data-v="${esc(o)}" aria-pressed="${arr.includes(o)}">${esc(o)}</button>`).join('')}</div>
+        ${f.autre ? `<input type="text" class="autre" data-k="${f.k}_autre" data-t="text" placeholder="Autre (préciser)" value="${esc(autreV)}">` : ''}</div>`;
+    }
+    case 'scale':
+      return `<div class="field"><span class="lab">${lab}</span><div class="scale"><small>${esc(f.lo)}</small><span class="chips" data-k="${f.k}" data-t="scale">${[1,2,3,4,5].map(n => `<button type="button" class="chip" data-v="${n}" aria-pressed="${v === n}">${n}</button>`).join('')}</span><small>${esc(f.hi)}</small></div></div>`;
+    case 'pct': {
+      const o = v || {};
+      return `<div class="field"><span class="lab">${lab}</span><div class="pct" data-k="${f.k}">${f.o.map(([key,l]) => `<label for="${id}_${key}">${esc(l)}</label><input type="number" id="${id}_${key}" data-pk="${key}" min="0" max="100" inputmode="numeric" value="${esc(o[key] ?? '')}">`).join('')}</div><div class="pct-total" id="${id}_tot"></div></div>`;
+    }
+    case 'tags': {
+      const arr = Array.isArray(v) ? v : [];
+      return `<div class="field"><span class="lab">${lab}</span><div class="tags" data-k="${f.k}">${arr.map((t,i) => `<span class="tag">${esc(t)}<button type="button" data-i="${i}" aria-label="Retirer">×</button></span>`).join('')}<input type="text" placeholder="Ajouter un mot-clé…" enterkeyhint="enter"></div></div>`;
+    }
+    case 'contacts': {
+      const arr = Array.isArray(v) ? v : [];
+      let h = `<div class="field"><span class="lab">${lab}</span><div data-k="${f.k}" data-t="contacts">`;
+      for (let i = 0; i < f.n; i++){ const c = arr[i] || {};
+        h += `<div class="contact"><input type="text" data-i="${i}" data-c="nom" placeholder="Nom ${i+1}" value="${esc(c.nom || '')}"><input type="text" data-i="${i}" data-c="contact" placeholder="Téléphone ou e-mail" value="${esc(c.contact || '')}"><input type="text" data-i="${i}" data-c="lien" placeholder="Lien (collègue, ami…)" value="${esc(c.lien || '')}"></div>`; }
+      return h + '</div></div>';
+    }
+    case 'profil':
+      return `<div class="field"><label for="${id}">${lab}</label><select id="${id}" data-k="${f.k}" data-t="select"><option value="">— Pas encore de compte —</option>${profils.map(p => `<option value="${p.id}" ${v === p.id ? 'selected' : ''}>${esc(p.nom_complet || p.email)} (${esc(p.email)})</option>`).join('')}</select></div>`;
+  }
+  return '';
+}
+function bindFields(){
+  const form = $('#fForm');
+  form.querySelectorAll('input[data-k], textarea[data-k], select[data-k]').forEach(el => {
+    const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+    el.addEventListener(ev, () => {
+      const t = el.dataset.t; let v;
+      if (t === 'check') v = el.checked;
+      else if (t === 'number') v = el.value === '' ? null : Number(el.value);
+      else if (t === 'select') v = el.value || null;
+      else v = el.value.trim() === '' ? null : el.value;
+      setVal(el.dataset.k, v);
+      if (el.dataset.k === 'consentement_rgpd' && v && !cur.consentement_le) cur.consentement_le = new Date().toISOString();
+      if (el.dataset.k === 'prenom' || el.dataset.k === 'nom') refreshMeta();
+    });
+  });
+  form.querySelectorAll('.chips[data-k]').forEach(box => box.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const k = box.dataset.k, t = box.dataset.t, pressed = b.getAttribute('aria-pressed') === 'true';
+    if (t === 'multi'){
+      b.setAttribute('aria-pressed', String(!pressed));
+      setVal(k, [...box.querySelectorAll('.chip[aria-pressed=true]')].map(x => x.dataset.v));
+    } else {
+      box.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false'));
+      let v = null;
+      if (!pressed){ b.setAttribute('aria-pressed', 'true'); v = t === 'scale' ? Number(b.dataset.v) : t === 'bool' ? b.dataset.v === 'true' : b.dataset.v; }
+      setVal(k, v);
+    }
+  }));
+  form.querySelectorAll('.pct[data-k]').forEach(box => {
+    const upd = (save) => {
+      const o = {}; let tot = 0;
+      box.querySelectorAll('input').forEach(i => { if (i.value !== ''){ o[i.dataset.pk] = Number(i.value); tot += Number(i.value); } });
+      const el = document.getElementById('f_' + box.dataset.k + '_tot');
+      el.textContent = Object.keys(o).length ? `Total : ${tot} %` + (tot !== 100 ? ' (devrait faire 100 %)' : ' ✓') : '';
+      el.classList.toggle('bad', Object.keys(o).length > 0 && tot !== 100);
+      if (save) setVal(box.dataset.k, Object.keys(o).length ? o : null);
+    };
+    box.addEventListener('input', () => upd(true)); upd(false);
+  });
+  form.querySelectorAll('.tags[data-k]').forEach(box => bindTags(box.dataset.k, false));
+  form.querySelectorAll('[data-t=contacts]').forEach(box => box.addEventListener('input', () => {
+    const arr = [];
+    box.querySelectorAll('.contact').forEach((row, i) => { const c = {}; row.querySelectorAll('input').forEach(x => { if (x.value.trim()) c[x.dataset.c] = x.value.trim(); }); arr[i] = c; });
+    const clean = arr.filter(c => Object.keys(c).length);
+    setVal(box.dataset.k, clean.length ? arr.map(c => c || {}) : null);
+  }));
+}
+function rerenderField(k, focus){
+  const f = ALL_FIELDS.find(x => x.k === k), box = document.querySelector(`.tags[data-k="${k}"]`);
+  const wrap = box.closest('.field'); const tmp = document.createElement('div'); tmp.innerHTML = renderField(f);
+  wrap.replaceWith(tmp.firstElementChild); bindTags(k, focus);
+}
+function bindTags(k, focus){
+  const box = document.querySelector(`.tags[data-k="${k}"]`), inp = box.querySelector('input');
+  const add = (refocus) => { const val = inp.value.trim().replace(/,$/, ''); if (!val || !box.isConnected) return;
+    inp.value = '';
+    const arr = [...(getVal(cur,k) || [])]; if (!arr.includes(val)) arr.push(val); setVal(k, arr); rerenderField(k, refocus); };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ','){ e.preventDefault(); add(true); } });
+  inp.addEventListener('blur', () => add(false));
+  box.addEventListener('mousedown', e => { if (e.target.closest('button[data-i]')) e.preventDefault(); });
+  box.addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (!b) return;
+    const arr = [...(getVal(cur,k) || [])]; arr.splice(Number(b.dataset.i), 1); setVal(k, arr); rerenderField(k, false); });
+  if (focus) inp.focus();
+}
+function refreshMeta(){
+  $('#fProg').style.width = completion(cur) + '%';
+  const name = [cur.prenom, cur.nom].filter(Boolean).join(' ');
+  $('#topSub').textContent = (cur.code_testeur || 'Nouvel entretien') + (name ? ' · ' + name : '');
+  document.querySelectorAll('#nav a').forEach(a => {
+    const s = SECTIONS.find(x => x.id === a.dataset.sec);
+    a.classList.toggle('done', s.fields.some(f => { const v = getVal(cur, f.k); return f.t !== 'consent' && v != null && v !== '' && !(Array.isArray(v) && !v.length) && v !== false; }));
+  });
+}
+
+/* =================== Enregistrement =================== */
+function setState(t, cls){ const el = $('#saveState'); el.textContent = t; el.style.color = cls === 'err' ? 'var(--err)' : cls === 'ok' ? 'var(--ok)' : ''; }
+function markDirty(){
+  dirty = true; refreshMeta();
+  safeLS.set('entretien_brouillon', { uid: session.user.id, rec: cur, at: Date.now() });
+  if (!cur.consentement_rgpd){ setState('Consentement requis', 'err'); return; }
+  setState('Modifications…');
+  clearTimeout(timer); timer = setTimeout(() => save(), 2500);
+}
+function validate(){
+  if (!cur.consentement_rgpd) return 'Cochez le consentement de l\'électricien avant d\'enregistrer.';
+  if (!cur.intervieweur_nom || !cur.intervieweur_nom.trim()) return 'Indiquez le nom de l\'intervieweur.';
+  if (!cur.date_entretien) return 'Indiquez la date de l\'entretien.';
+  return null;
+}
+async function save(opts = {}){
+  clearTimeout(timer);
+  const err = validate();
+  if (err){ setState(err, 'err'); if (opts.explicit) alertMsg(err); return false; }
+  if (saving){ timer = setTimeout(() => save(opts), 800); return false; }
+  saving = true; setState('Enregistrement…');
+  const payload = { questionnaire_version: cur.questionnaire_version || QUESTIONNAIRE_VERSION, statut: cur.statut, reponses: cur.reponses || {} };
+  COLS.forEach(k => { if (k in cur) payload[k] = cur[k] === '' ? null : cur[k]; });
+  if (!cur.id && cur.consentement_le) payload.consentement_le = cur.consentement_le;
+  const q = cur.id ? sb.from('entretiens').update(payload).eq('id', cur.id).select().single()
+                   : sb.from('entretiens').insert(payload).select().single();
+  const { data, error } = await q;
+  saving = false;
+  if (error){ setState('Échec : ' + error.message, 'err'); if (opts.explicit) alertMsg('Échec de l\'enregistrement : ' + error.message + '\nVotre saisie est conservée sur cet appareil.'); return false; }
+  const wasNew = !cur.id;
+  Object.assign(cur, { id: data.id, code_testeur: data.code_testeur, created_at: data.created_at, conserver_jusqu_au: data.conserver_jusqu_au, updated_at: data.updated_at });
+  const i = rows.findIndex(r => r.id === data.id); if (i >= 0) rows[i] = data; else rows.unshift(data);
+  dirty = false; safeLS.del('entretien_brouillon');
+  $('#fCode').textContent = data.code_testeur;
+  if (wasNew){ const c = $('#f_consentement_rgpd'); if (c) c.disabled = true; }
+  refreshMeta();
+  setState('Enregistré ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}), 'ok');
+  return true;
+}
+$('#btnSave').addEventListener('click', () => save({explicit:true}));
+$('#btnDone').addEventListener('click', async () => {
+  const prev = cur.statut;
+  cur.statut = prev === 'termine' ? 'brouillon' : 'termine';
+  if (await save({explicit:true})) $('#btnDone').textContent = cur.statut === 'termine' ? 'Repasser en brouillon' : 'Marquer terminé';
+  else cur.statut = prev;
+});
+$('#btnBack').addEventListener('click', async () => {
+  if (dirty){
+    if (cur.consentement_rgpd){ if (!(await save({explicit:true}))) return; }
+    else if (!confirm('Sans consentement, la fiche ne peut pas être enregistrée. Abandonner la saisie ?')) return;
+    else safeLS.del('entretien_brouillon');
+  }
+  cur = null; dirty = false; $('#topSub').textContent = 'Entretiens testeurs · ' + (me?.nom_complet || ''); renderList(); show('vList');
+});
+window.addEventListener('beforeunload', e => { if (dirty){ e.preventDefault(); e.returnValue = ''; } });
+function alertMsg(m){ window.alert(m); }
+
+/* =================== Export CSV =================== */
+$('#btnCsv').addEventListener('click', () => {
+  const keys = ['code_testeur','statut','questionnaire_version','created_at','updated_at','conserver_jusqu_au'];
+  ALL_FIELDS.forEach(f => {
+    if (f.t === 'pct') f.o.forEach(([k]) => keys.push(f.k + '.' + k));
+    else if (f.t === 'contacts') for (let i = 0; i < f.n; i++) keys.push(`${f.k}.${i+1}`);
+    else { keys.push(f.k); if (f.autre) keys.push(f.k + '_autre'); }
+  });
+  const cell = v => { if (v == null) return ''; if (Array.isArray(v)) v = v.map(x => typeof x === 'object' ? Object.values(x || {}).join(' / ') : x).join(' | '); else if (typeof v === 'boolean') v = v ? 'oui' : 'non'; else if (typeof v === 'object') v = JSON.stringify(v);
+    v = String(v); return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const val = (r, k) => {
+    if (k in r && !['reponses'].includes(k) && !k.includes('.')) return r[k];
+    const [base, sub] = k.split('.'); const v = getVal(r, base) ?? (r.reponses || {})[base];
+    if (sub == null) return v;
+    if (Array.isArray(v)) return v[Number(sub) - 1] ? Object.values(v[Number(sub) - 1]).join(' / ') : '';
+    return v ? v[sub] : '';
+  };
+  const lines = [keys.join(';'), ...rows.map(r => keys.map(k => cell(val(r, k))).join(';'))];
+  const blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `entretiens_testeurs_${today()}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT') show('vLogin'); });
+boot();
+</script>
+</body>
+</html>
