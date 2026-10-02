@@ -59,6 +59,9 @@ const CSS = `
 .cpt-invite p{margin:0;flex:1;min-width:220px;font-size:.85rem;color:var(--text);line-height:1.5}
 .cpt-invite strong{font-weight:800}
 .cpt-invite-actions{display:flex;gap:8px;flex-wrap:wrap}
+.cpt-consent{display:flex;gap:9px;align-items:flex-start;margin:14px 0 0;font-size:.8rem;line-height:1.5;color:var(--text2,#5a6b7d);cursor:pointer}
+.cpt-consent input{margin-top:3px;width:17px;height:17px;flex-shrink:0;accent-color:#1a56db}
+.cpt-consent a{color:#1a56db;font-weight:700}
 .cpt-invite-fermer{background:none;border:0;color:var(--text2);font-size:1.1rem;cursor:pointer;line-height:1}
 `;
 
@@ -114,6 +117,7 @@ function Modale({ ongletInitial, onFermer }) {
   const [etat, setEtat] = useState("saisie");
   const [erreur, setErreur] = useState(null);
   const [info, setInfo] = useState(null);
+  const [consentement, setConsentement] = useState(false);
   const premier = useRef(null);
 
   useEffect(() => {
@@ -132,7 +136,7 @@ function Modale({ ongletInitial, onFermer }) {
       if (onglet === "connexion") {
         await connexion({ email, motDePasse });
       } else {
-        await inscription({ email, motDePasse, nomComplet, metier });
+        await inscription({ email, motDePasse, nomComplet, metier, consentement });
       }
       onFermer();
     } catch (err) {
@@ -259,6 +263,27 @@ function Modale({ ongletInitial, onFermer }) {
             <p className="cpt-sous" style={{ margin: "6px 0 0", fontSize: ".78rem" }}>
               Six caractères minimum.
             </p>
+          )}
+
+          {/* Consentement explicite (RGPD) : une case, une phrase, pas de jargon.
+              La date et la version du texte accepté sont gardées en base. */}
+          {creation && (
+            <label className="cpt-consent">
+              <input
+                type="checkbox"
+                checked={consentement}
+                onChange={(e) => setConsentement(e.target.checked)}
+                required
+              />
+              <span>
+                J’accepte que Les Éclaireurs! utilise mon nom, mon e-mail et mes
+                retours pour mener ce test. Rien n’est revendu ni transmis à un
+                fabricant, et je peux faire supprimer mon compte à tout moment.{" "}
+                <a href="/?page=confidentialite" target="_blank" rel="noopener noreferrer">
+                  En savoir plus
+                </a>
+              </span>
+            </label>
           )}
 
           {erreur && <p className="cpt-msg cpt-ko">{erreur}</p>}

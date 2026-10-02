@@ -27,7 +27,7 @@ export const REGIONS=[
   {id:"occ",label:"Occitanie",ico:"☀️"},
   {id:"pdl",label:"Pays de la Loire",ico:"🌊"},
   {id:"paca",label:"PACA",ico:"🌿"},
-  {id:"naq",label:"Nouvelle-Aquitaine",ico:"🍷"},
+  {id:"naq",label:"Nouvelle-Aquitaine",ico:"🏄"},
   {id:"bfc",label:"Bourgogne-Franche-Comté",ico:"🏛️"},
   {id:"hdf",label:"Hauts-de-France",ico:"🏭"},
   {id:"bre",label:"Bretagne",ico:"⚓"},

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { pgInsert, session } from '../lib/supabase'
+import { pgInsert, session, televerserPieceJointe } from '../lib/supabase'
 
 /**
  * Bouton de retour testeur — identique sur le site et sur l'application.
@@ -9,8 +9,15 @@ import { pgInsert, session } from '../lib/supabase'
  * version déployée) est capté automatiquement — c'est justement ce qu'un
  * testeur ne pense jamais à écrire, et ce qui fait la valeur du retour.
  *
- * Fonctionne sans compte : un testeur bloqué à la connexion doit pouvoir le
- * signaler. Dans ce cas un e-mail facultatif permet de lui répondre.
+ * Un retour est signé (décision du 02/10) : il faut un compte, pour savoir qui
+ * parle et pouvoir répondre. Une seule exception, volontaire : « Je n'arrive
+ * pas à me connecter ». Sans elle, un testeur bloqué à la connexion ne pourrait
+ * pas signaler le problème qui l'empêche justement de signaler. Dans ce cas le
+ * nom et l'e-mail deviennent obligatoires : l'identification reste assurée.
+ *
+ * Une capture d'écran peut être jointe. Elle est réduite dans le navigateur
+ * avant l'envoi (1 600 px, JPEG) : une photo de téléphone de 5 Mo deviendrait
+ * sinon impossible à envoyer depuis un chantier.
  *
  * Styles autonomes et préfixés `rt-` : aucune dépendance aux feuilles de style
  * des deux applications, aucun risque de collision.
@@ -59,6 +66,17 @@ textarea.rt-champ{min-height:110px;resize:vertical}
 .rt-envoyer:disabled{opacity:.55;cursor:not-allowed}
 .rt-annuler{min-height:46px;padding:0 16px;border:1px solid #d8dee7;border-radius:10px;
   background:#fff;color:#14202e;font:600 15px/1 inherit;cursor:pointer}
+.rt-pj{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px}
+.rt-pj-bouton{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 13px;
+  border:1px dashed #b8c2d0;border-radius:10px;background:#f7f9fc;color:#14202e;
+  font:600 13px/1 inherit;cursor:pointer}
+.rt-pj-bouton:focus-within{outline:3px solid #f59e0b;outline-offset:2px}
+.rt-pj input{position:absolute;width:1px;height:1px;opacity:0}
+.rt-pj-vignette{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #d8dee7}
+.rt-pj-nom{font-size:.8rem;color:#5a6b7d}
+.rt-porte{padding:6px 0 2px}
+.rt-porte .rt-envoyer{width:100%;margin-top:10px}
+.rt-porte .rt-annuler{width:100%;margin-top:8px}
 .rt-msg{margin:12px 0 0;padding:10px 12px;border-radius:10px;font-size:.88rem}
 .rt-msg-ok{background:#e8f5ec;color:#15803d}
 .rt-msg-ko{background:#fdecea;color:#b42318}
@@ -91,6 +109,35 @@ function injecterStyles() {
   document.head.appendChild(s)
 }
 
+/**
+ * Réduit une image à 1 600 px de plus grand côté et la convertit en JPEG.
+ * Renvoie un Blob, ou lève une erreur si le fichier n'est pas une image lisible.
+ */
+async function reduireImage(fichier, cote = 1600) {
+  const url = URL.createObjectURL(fichier)
+  try {
+    const img = await new Promise((ok, ko) => {
+      const i = new Image()
+      i.onload = () => ok(i)
+      i.onerror = () => ko(new Error('image illisible'))
+      i.src = url
+    })
+    const ratio = Math.min(1, cote / Math.max(img.naturalWidth, img.naturalHeight))
+    const toile = document.createElement('canvas')
+    toile.width = Math.round(img.naturalWidth * ratio)
+    toile.height = Math.round(img.naturalHeight * ratio)
+    const ctx = toile.getContext('2d')
+    ctx.fillStyle = '#fff' // une capture PNG transparente deviendrait noire en JPEG
+    ctx.fillRect(0, 0, toile.width, toile.height)
+    ctx.drawImage(img, 0, 0, toile.width, toile.height)
+    const blob = await new Promise((ok) => toile.toBlob(ok, 'image/jpeg', 0.82))
+    if (!blob) throw new Error('conversion impossible')
+    return blob
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
 /** Version déployée, injectée au build (voir vite.config.js). */
 const VERSION = typeof __VERSION__ === 'string' ? __VERSION__ : 'inconnue'
 
@@ -100,6 +147,10 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
   const [gravite, setGravite] = useState('genant')
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState('')
+  const [nomSaisi, setNomSaisi] = useState('')
+  // Exception « je n'arrive pas à me connecter » : retour sans compte, mais signé.
+  const [sansCompte, setSansCompte] = useState(false)
+  const [pj, setPj] = useState(null) // { blob, apercu, nom }
   const [etat, setEtat] = useState('saisie') // saisie | envoi | envoye
   const [erreur, setErreur] = useState(null)
   const champMessage = useRef(null)
@@ -132,6 +183,28 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
     setEtat('saisie')
     setErreur(null)
     setMessage('')
+    setSansCompte(false)
+    if (pj) URL.revokeObjectURL(pj.apercu)
+    setPj(null)
+  }
+
+  function ouvrirCompte(onglet) {
+    fermer()
+    window.dispatchEvent(new CustomEvent('eclaireurs:compte', { detail: { onglet } }))
+  }
+
+  async function choisirImage(e) {
+    const fichier = e.target.files?.[0]
+    e.target.value = ''
+    if (!fichier) return
+    setErreur(null)
+    try {
+      const blob = await reduireImage(fichier)
+      if (pj) URL.revokeObjectURL(pj.apercu)
+      setPj({ blob, apercu: URL.createObjectURL(blob), nom: fichier.name })
+    } catch {
+      setErreur("Cette image n'a pas pu être lue. Essayez une capture d'écran au format PNG ou JPEG.")
+    }
   }
 
   async function envoyer(e) {
@@ -143,6 +216,17 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
     setEtat('envoi')
     setErreur(null)
     try {
+      // La capture part d'abord : si elle échoue, on envoie quand même le
+      // retour, sans elle. Un texte sans image vaut mieux que rien du tout.
+      let pjChemin = null
+      let pjPerdue = false
+      if (pj) {
+        try {
+          pjChemin = await televerserPieceJointe(pj.blob)
+        } catch {
+          pjPerdue = true
+        }
+      }
       await pgInsert(
         'retours',
         [
@@ -150,7 +234,9 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
             application,
             type,
             gravite: type === 'bug' ? gravite : null,
-            message: message.trim(),
+            message: message.trim() + (pjPerdue ? '\n\n[Une capture d’écran était jointe mais son envoi a échoué.]' : ''),
+            pj_chemin: pjChemin,
+            demandeur: connecte ? null : nomSaisi.trim() || null,
             ecran: ecran || document.title || null,
             url: window.location.href,
             navigateur: navigator.userAgent,
@@ -207,6 +293,27 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
                     Fermer
                   </button>
                 </div>
+              </div>
+            ) : !connecte && !sansCompte ? (
+              <div className="rt-porte">
+                <h2 className="rt-titre" id="rt-titre">
+                  Un retour ? Dites-nous qui vous êtes
+                </h2>
+                <p className="rt-sous">
+                  Pour pouvoir vous répondre et suivre vos remarques, chaque retour est
+                  rattaché à un compte. La création prend trente secondes.
+                </p>
+                <button type="button" className="rt-envoyer" onClick={() => ouvrirCompte('connexion')}>
+                  Me connecter
+                </button>
+                <button type="button" className="rt-annuler" onClick={() => ouvrirCompte('creation')}>
+                  Créer mon compte
+                </button>
+                <p className="rt-aide" style={{ marginTop: 14, textAlign: 'center' }}>
+                  <button type="button" className="rt-lien" onClick={() => setSansCompte(true)}>
+                    Je n’arrive pas à me connecter
+                  </button>
+                </p>
               </div>
             ) : (
               <form onSubmit={envoyer}>
@@ -269,14 +376,48 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
                   required
                 />
 
+                <div className="rt-pj">
+                  <label className="rt-pj-bouton">
+                    <span aria-hidden="true">📎</span>
+                    {pj ? 'Changer la capture' : 'Joindre une capture d’écran'}
+                    <input type="file" accept="image/*" onChange={choisirImage} />
+                  </label>
+                  {pj && (
+                    <>
+                      <img className="rt-pj-vignette" src={pj.apercu} alt="Aperçu de la capture jointe" />
+                      <button
+                        type="button"
+                        className="rt-lien"
+                        onClick={() => {
+                          URL.revokeObjectURL(pj.apercu)
+                          setPj(null)
+                        }}
+                      >
+                        Retirer
+                      </button>
+                    </>
+                  )}
+                </div>
+
                 {connecte ? (
                   <p className="rt-identite">
                     Envoyé en tant que <strong>{nom}</strong>
                   </p>
                 ) : (
                   <>
+                    <label className="rt-label" htmlFor="rt-nom">
+                      Votre nom
+                    </label>
+                    <input
+                      id="rt-nom"
+                      className="rt-champ"
+                      value={nomSaisi}
+                      onChange={(e) => setNomSaisi(e.target.value)}
+                      autoComplete="name"
+                      required
+                    />
                     <label className="rt-label" htmlFor="rt-email">
-                      Votre e-mail (facultatif)
+                      Votre e-mail
                     </label>
                     <input
                       id="rt-email"
@@ -286,23 +427,11 @@ export default function RetourTesteur({ application, ecran, decalageBas = 14 }) 
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="pour vous répondre"
                       autoComplete="email"
+                      required
                     />
                     <p className="rt-aide">
-                      Vous n’êtes pas connecté : sans e-mail, ce retour arrivera
-                      anonyme et nous ne pourrons pas vous répondre.{' '}
-                      <button
-                        type="button"
-                        className="rt-lien"
-                        onClick={() =>
-                          window.dispatchEvent(
-                            new CustomEvent('eclaireurs:compte', {
-                              detail: { onglet: 'creation' },
-                            })
-                          )
-                        }
-                      >
-                        Créer un compte
-                      </button>
+                      Retour envoyé sans compte, parce que la connexion ne fonctionne
+                      pas : dites-nous dans le message ce qui bloque.
                     </p>
                   </>
                 )}

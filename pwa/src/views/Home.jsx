@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCatalog } from "../data/useCatalog";
 import { useProfile } from "../data/profile";
 import { isVoiceSupported, startDictation } from "../lib/speech";
+import { SITE_URL, lienFormations } from "../lib/site";
 
 export default function Home({ go, onAsk }) {
   const { courses } = useCatalog();
@@ -194,7 +195,7 @@ export default function Home({ go, onAsk }) {
             </div>
             <div className="ac-title">Hotline fabricant</div>
             <div className="ac-sub">Support technique</div>
-            <span className="ac-badge badge-orange">Appel direct</span>
+            <span className="ac-badge badge-orange">Pages officielles</span>
           </div>
         </div>
 
@@ -202,6 +203,24 @@ export default function Home({ go, onAsk }) {
           Les Éclaireurs! n'édite pas de formations : la plateforme référence et
           oriente vers les catalogues officiels des organismes et fabricants.
         </div>
+
+        {/* Rubriques rarement consultées : en pied d'accueil, hors de la barre
+            du bas, qui reste réservée aux usages quotidiens. Elles vivent sur
+            le site, pour n'avoir qu'un seul texte à tenir à jour. */}
+        <nav className="pied-liens" aria-label="Informations">
+          <a href={`${SITE_URL}?page=about`} target="_blank" rel="noopener noreferrer">
+            Qui sommes-nous
+          </a>
+          <a href={`${SITE_URL}?page=confidentialite`} target="_blank" rel="noopener noreferrer">
+            Confidentialité
+          </a>
+          <a href={`${SITE_URL}?page=demo`} target="_blank" rel="noopener noreferrer">
+            Ce qui est simulé
+          </a>
+          <a href={lienFormations({ origine: "accueil" })} target="_blank" rel="noopener noreferrer">
+            Le site web
+          </a>
+        </nav>
       </div>
     </div>
   );

@@ -176,6 +176,28 @@ export async function pgUpdate(table, filtres, champs) {
   return reponse.json()
 }
 
+/* ─────────── Pièces jointes des retours ─────────── */
+
+/**
+ * Dépose une capture d'écran dans le bucket privé `retours-pj` et renvoie son
+ * nom. Le bucket n'est lisible que par les administrateurs ; le nom est
+ * aléatoire, donc impossible à deviner.
+ */
+export async function televerserPieceJointe(blob) {
+  const nom = `${crypto.randomUUID()}.jpg`
+  const reponse = await fetch(`${SUPABASE_URL}/storage/v1/object/retours-pj/${nom}`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_CLE,
+      Authorization: `Bearer ${await jeton()}`,
+      'Content-Type': 'image/jpeg',
+    },
+    body: blob,
+  })
+  if (!reponse.ok) throw new Error(`pièce jointe : ${reponse.status}`)
+  return nom
+}
+
 /* ─────────── Authentification ─────────── */
 
 async function auth(chemin, corps) {
@@ -189,11 +211,22 @@ async function auth(chemin, corps) {
   return data
 }
 
-export async function inscription({ email, motDePasse, nomComplet, metier }) {
+/** Version du texte de consentement présenté à la création du compte. À
+ *  changer quand le texte change : la base garde la version acceptée. */
+export const VERSION_CONSENTEMENT = 'pilote-2026-10'
+
+export async function inscription({ email, motDePasse, nomComplet, metier, consentement = false }) {
   const data = await auth('signup', {
     email,
     password: motDePasse,
-    data: { nom_complet: nomComplet, metier, role: 'apprenant' },
+    // Le consentement est horodaté côté base, à la création du profil.
+    data: {
+      nom_complet: nomComplet,
+      metier,
+      role: 'apprenant',
+      consentement: consentement ? 'true' : 'false',
+      consentement_version: VERSION_CONSENTEMENT,
+    },
   })
   if (data.access_token) enregistrerSession(data)
   return data

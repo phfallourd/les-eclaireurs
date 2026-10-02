@@ -9,6 +9,7 @@ import {
   emailUtilisateur,
 } from "../data/compte";
 import { fenetreOuverte } from "../lib/modale";
+import { SITE_URL } from "../lib/site";
 
 export default function ProfileBar() {
   const profile = useProfile();
@@ -26,6 +27,7 @@ export default function ProfileBar() {
   const [erreur, setErreur] = useState(null);
   const [info, setInfo] = useState(null);
   const [enCours, setEnCours] = useState(false);
+  const [consentement, setConsentement] = useState(false);
 
   const open = (mode = null) => {
     setDraftName(profile.name);
@@ -57,6 +59,7 @@ export default function ProfileBar() {
           motDePasse,
           nomComplet: draftName.trim() || profile.name,
           metier: draftSpecialty,
+          consentement,
         });
         setInfo(
           data.access_token
@@ -252,6 +255,30 @@ export default function ProfileBar() {
                     minLength={6}
                     required
                   />
+
+                  {modeCompte === "inscription" && (
+                    <label className="consent-ligne">
+                      <input
+                        type="checkbox"
+                        checked={consentement}
+                        onChange={(e) => setConsentement(e.target.checked)}
+                        required
+                      />
+                      <span>
+                        J'accepte que Les Éclaireurs! utilise mon nom, mon e-mail
+                        et mes retours pour mener ce test. Rien n'est revendu ni
+                        transmis à un fabricant, et je peux faire supprimer mon
+                        compte à tout moment.{" "}
+                        <a
+                          href={`${SITE_URL}?page=confidentialite`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          En savoir plus
+                        </a>
+                      </span>
+                    </label>
+                  )}
 
                   <button className="sheet-cta" type="submit" disabled={enCours}>
                     {enCours

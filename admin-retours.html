@@ -288,6 +288,13 @@
        *  remplacé en base — il reste la trace de ce que la personne a écrit. */
       const libelle = (r) => (r.titre && r.titre.trim()) || r.message
 
+      /** Numéro court d'un retour : « R-042 ». Attribué par la base à chaque
+       *  retour sans exception, dans l'ordre d'arrivée — contrairement à
+       *  l'ancienne référence (#25, R7…), que seuls certains retours portaient.
+       *  L'ancienne référence reste affichée entre parenthèses quand elle existe. */
+      const refCourte = (r) => 'R-' + String(r.numero ?? 0).padStart(3, '0')
+      const refAncienne = (r) => (r.id_source ? ` (#${r.id_source})` : '')
+
       function trier(liste) {
         const parPriorite = (a, b) =>
           (a.priorite || 'P9').localeCompare(b.priorite || 'P9') || numero(a) - numero(b)
@@ -308,7 +315,7 @@
 
       const lotDuJour = () => new Date().toISOString().slice(0, 10)
       const estOuvert = (r) => OUVERT.includes(r.statut)
-      const numero = (r) => (r.id_source ? Number(r.id_source) : 900)
+      const numero = (r) => r.numero ?? 9999
 
       function chantiers() {
         const m = new Map()
@@ -394,7 +401,7 @@
                          aria-label="Inclure ce retour dans le lot"/>`
                     : '<span class="coche-vide" aria-hidden="true"></span>'
                 }
-                <span class="ref">${r.id_source ? '#' + echapper(r.id_source) : '—'}</span>
+                <span class="ref" title="${echapper(refAncienne(r).trim())}">${refCourte(r)}</span>
                 <span class="etiq e-${r.priorite || 'P3'}">${r.priorite || '—'}</span>
                 <span style="flex:1" title="${echapper(r.message)}">${
                   r.titre ? '' : ''
@@ -508,7 +515,7 @@
           <article class="carte" data-id="${r.id}">
             <div class="entre">
               <div class="ligne">
-                ${r.id_source ? `<span class="etiq">#${echapper(r.id_source)}</span>` : ''}
+                <span class="etiq" style="font-weight:800">${refCourte(r)}${echapper(refAncienne(r))}</span>
                 <span class="etiq e-${echapper(r.type)}">${LIB_TYPE[r.type] ?? r.type}</span>
                 ${r.gravite ? `<span class="etiq e-${echapper(r.gravite)}">${LIB_GRAVITE[r.gravite]}</span>` : ''}
                 <span class="etiq">${LIB_CIBLE[r.application] ?? r.application}</span>
@@ -534,6 +541,12 @@
             }${r.origine !== 'bouton' ? ' · source : ' + echapper(r.origine) : ''}${
               r.priorite_demandeur ? ' · demandé en ' + echapper(r.priorite_demandeur) : ''
             }</p>
+
+            ${
+              r.pj_chemin
+                ? `<p class="meta"><button class="discret" data-pj="${echapper(r.pj_chemin)}">📎 Voir la capture d’écran jointe</button></p>`
+                : ''
+            }
 
             <label>Priorité</label>
             <div class="ligne">
@@ -599,6 +612,28 @@
         const id = el.dataset.id
         const note = el.querySelector('[data-note]')
         const reponse = el.querySelector('[data-reponse]')
+        const pj = el.querySelector('[data-pj]')
+        if (pj)
+          pj.onclick = async () => {
+            // Le bucket est privé : on demande une adresse signée, valable 5 minutes.
+            const texte = pj.textContent
+            pj.disabled = true
+            try {
+              const r = await fetch(`${URL_BASE}/storage/v1/object/sign/retours-pj/${pj.dataset.pj}`, {
+                method: 'POST',
+                headers: await entetes(),
+                body: JSON.stringify({ expiresIn: 300 }),
+              })
+              if (!r.ok) throw new Error(String(r.status))
+              const d = await r.json()
+              window.open(`${URL_BASE}/storage/v1${d.signedURL || d.signedUrl}`, '_blank', 'noopener')
+            } catch {
+              pj.textContent = 'Capture indisponible'
+              setTimeout(() => (pj.textContent = texte), 2500)
+            } finally {
+              pj.disabled = false
+            }
+          }
         const titre = el.querySelector('[data-titre]')
         const fin = el.querySelector('[data-fin]')
         const dire = (t) => {
@@ -724,7 +759,7 @@
           L.push('CE QUI A CHANGÉ')
           L.push('')
           for (const [ch, lignes] of parChantier) {
-            const refs = lignes.map((r) => (r.id_source ? '#' + r.id_source : '')).filter(Boolean)
+            const refs = lignes.map((r) => refCourte(r))
             L.push(
               `• ${ch} — ${lignes.length} remarque${lignes.length > 1 ? 's' : ''}${
                 refs.length ? ' (' + refs.join(', ') + ')' : ''
@@ -764,7 +799,7 @@
             L.push('')
             L.push(`${titre} (${tab.length})`)
             for (const r of tab) {
-              const ref = r.id_source ? `#${r.id_source} ` : ''
+              const ref = `${refCourte(r)} `
               const msg = r.message.trim()
               // Remarque et réponse en entier : c'est le point du document.
               // Quand un intitulé clair existe, il ouvre le paragraphe et les
@@ -818,6 +853,7 @@
           iso ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' }).format(new Date(iso)) : ''
 
         const lignes = trier(retours).map((r) => ({
+          'N°': refCourte(r),
           Demande: libelle(r),
           Type: LIB_TYPE[r.type] ?? r.type ?? '',
           Statut: LIB_STATUT[r.statut] ?? r.statut ?? '',
@@ -831,8 +867,10 @@
         }))
 
         const feuille = utils.json_to_sheet(lignes)
+        // Filtre automatique sur la ligne d'en-tête, toutes colonnes.
+        feuille['!autofilter'] = { ref: feuille['!ref'] }
         feuille['!cols'] = [
-          { wch: 50 }, { wch: 11 }, { wch: 11 }, { wch: 9 }, { wch: 11 },
+          { wch: 8 }, { wch: 50 }, { wch: 11 }, { wch: 11 }, { wch: 9 }, { wch: 11 },
           { wch: 14 }, { wch: 16 }, { wch: 50 }, { wch: 11 }, { wch: 11 },
         ]
         const classeur = utils.book_new()

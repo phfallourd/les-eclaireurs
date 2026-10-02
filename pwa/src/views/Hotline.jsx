@@ -7,39 +7,31 @@ import { useCatalog } from "../data/useCatalog";
  * La liste des marques n'est plus écrite en dur : elle suit le catalogue, pour
  * qu'un fabricant ajouté en base apparaisse ici sans intervention (remarque 7).
  *
- * Seuls les numéros vérifiés figurent ci-dessous. Une marque du catalogue dont
- * nous n'avons pas encore le support affiche « Contact à venir » plutôt qu'un
- * numéro approximatif : sur un chantier, un mauvais numéro coûte plus cher que
- * pas de numéro du tout.
+ * RÈGLE : un numéro n'entre ici que s'il a été lu sur la page officielle du
+ * fabricant ET composé une fois. Le 02/10, un test a montré que deux des
+ * quatre numéros affichés étaient faux (l'un menait chez un opérateur télécom,
+ * l'autre n'était pas attribué) ; aucun n'avait de source. Ils ont tous été
+ * retirés : sur un chantier, un mauvais numéro coûte plus cher que pas de
+ * numéro du tout.
  *
- * Ces numéros sont les numéros publics des fabricants. À revérifier
- * périodiquement — ils changent sans préavis.
+ * En attendant des numéros confirmés, chaque marque renvoie vers sa page de
+ * contact officielle — l'adresse, elle, est vérifiable. Pour rétablir un
+ * bouton d'appel : ajouter `phone`, `display`, `hours` et `verifieLe`.
  */
 const NUMEROS = {
   schneider: {
-    phone: "0800002050",
-    display: "0 800 002 050",
-    hours: "Lun–Ven 8h–18h · Gratuit",
     couleur: "#3db83d",
+    contact: "https://www.se.com/fr/fr/work/support/customer-care/contact-schneider-electric.jsp",
   },
   legrand: {
-    phone: "0555068787",
-    display: "05 55 06 87 87",
-    hours: "Lun–Ven 8h–18h",
     couleur: "#e05a0c",
+    contact: "https://www.legrand.fr/pro/nous-contacter",
   },
   hager: {
-    phone: "0388698000",
-    display: "03 88 69 80 00",
-    hours: "Lun–Ven 8h–17h",
     couleur: "#c8000a",
+    contact: "https://hager.com/fr/contact",
   },
-  siemens: {
-    phone: "0800200486",
-    display: "0 800 200 486",
-    hours: "Lun–Ven 8h30–17h30",
-    couleur: "#009999",
-  },
+  siemens: { couleur: "#009999" },
 };
 
 const IconePhone = () => (
@@ -68,28 +60,29 @@ export default function Hotline({ onBack }) {
     vus.add(id);
     marques.push({ id, nom: c.sourceLabel || id, ...(NUMEROS[id] || {}) });
   }
-  marques.sort((a, b) => {
-    if (Boolean(a.phone) !== Boolean(b.phone)) return a.phone ? -1 : 1;
-    return a.nom.localeCompare(b.nom, "fr");
-  });
 
-  const avecNumero = marques.filter((m) => m.phone).length;
+  marques.sort((a, b) => {
+    const rang = (m) => (m.phone ? 0 : m.contact ? 1 : 2);
+    return rang(a) - rang(b) || a.nom.localeCompare(b.nom, "fr");
+  });
+  const joignables = marques.filter((m) => m.phone || m.contact).length;
 
   return (
     <div className="view active">
       <div className="view-pad">
         <BackRow onBack={onBack} title="Hotline fabricants">
-          <span className="stat-chip">{avecNumero}</span>
+          <span className="stat-chip">{joignables}</span>
         </BackRow>
         <p className="view-intro">
-          Support technique des fabricants du catalogue. L'appel ouvre
-          directement le composeur de ton téléphone.
+          Support technique des fabricants du catalogue. Les numéros directs
+          sont en cours de vérification : en attendant, chaque lien ouvre la
+          page de contact officielle du fabricant.
         </p>
 
         {marques.map((m) => (
           <div
             key={m.id}
-            className={`marque-ligne ${m.phone ? "" : "sans-numero"}`}
+            className={`marque-ligne ${m.phone || m.contact ? "" : "sans-numero"}`}
             style={m.couleur ? { borderLeftColor: m.couleur } : undefined}
           >
             <div className="ml-texte">
@@ -98,6 +91,8 @@ export default function Hotline({ onBack }) {
                 <div className="ml-num">
                   {m.display} <span className="ml-hrs">· {m.hours}</span>
                 </div>
+              ) : m.contact ? (
+                <div className="ml-hrs">Page de contact officielle</div>
               ) : (
                 <div className="ml-hrs">Contact à venir</div>
               )}
@@ -110,6 +105,16 @@ export default function Hotline({ onBack }) {
               >
                 <IconePhone />
               </a>
+            ) : m.contact ? (
+              <a
+                className="ml-contact"
+                href={m.contact}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Ouvrir la page de contact de ${m.nom}`}
+              >
+                Contact ↗
+              </a>
             ) : (
               <span className="ml-appel inactif" aria-hidden="true">
                 <IconePhone />
@@ -119,9 +124,9 @@ export default function Hotline({ onBack }) {
         ))}
 
         <div className="info-note">
-          Les numéros affichés sont les numéros de support publics des
-          fabricants. Les marques sans numéro sont au catalogue mais leur
-          contact n'est pas encore vérifié.
+          Un numéro n'est affiché ici qu'après avoir été vérifié à la source
+          et testé. Si tu connais le bon numéro de support d'un fabricant,
+          dis-le nous par le bouton « Un retour ? ».
         </div>
       </div>
     </div>
