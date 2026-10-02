@@ -251,8 +251,20 @@ a.skip-link:focus{top:1rem;}
 
 /* ── SEARCH ── */
 .search-wrap{background:white;border-radius:var(--rl);border:1.5px solid var(--border);
-  padding:1.5rem;margin-bottom:2rem;box-shadow:var(--sh);}
-.search-row{display:flex;gap:.75rem;margin-bottom:1.25rem;}
+  padding:1rem 1.25rem;margin-bottom:1.25rem;box-shadow:var(--sh);}
+.search-row{display:flex;gap:.75rem;margin-bottom:.9rem;}
+.filtres-ligne{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:.6rem;align-items:end;}
+.filtre{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.filtre label{font-size:.64rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
+.filtre select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text);
+  padding:8px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem;cursor:pointer;outline:none;text-overflow:ellipsis;}
+.filtre select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+.filtre.actif select{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);font-weight:700;}
+.filtres-raz{background:none;border:0;color:var(--text2);font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer;
+  padding:9px 4px;white-space:nowrap;}
+.filtres-raz:hover{color:var(--blue);}
+@media(max-width:1000px){.filtres-ligne{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:600px){.filtres-ligne{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .search-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
   color:var(--text);padding:11px 16px 11px 42px;font-family:'Plus Jakarta Sans',sans-serif;
   font-size:.9rem;outline:none;transition:all .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:14px center;}
@@ -1451,16 +1463,16 @@ function DepotWizard(){
     <div className="section"><div className="section-inner">
       <div className="wsuccess">
         <div className="wsuccess-ico">🎉</div>
-        <h2 className="wsuccess-title">Tuto soumis avec succès !</h2>
-        <p className="wsuccess-sub">Votre formation <strong>"{form.titre}"</strong> a bien été reçue. Notre équipe pédagogique la vérifiera sous <strong>48h ouvrées</strong> avant publication sur la plateforme.</p>
+        <h2 className="wsuccess-title">Fin de la démonstration</h2>
+        {/* Le dépôt n'est pas branché : annoncer « reçu », « e-mail envoyé » et
+            « vérifié sous 48h » aurait fait attendre le testeur pour rien (R-110). */}
+        <p className="wsuccess-sub">Le dépôt de tutoriels <strong>n’est pas encore disponible</strong> : votre tuto <strong>"{form.titre}"</strong> n’a été ni envoyé ni enregistré. Vous venez de parcourir le formulaire tel qu’il fonctionnera.</p>
         <div className="wsuccess-badges">
-          <span style={{background:"var(--green-lt)",color:"var(--green)",border:"1px solid var(--green-md)",borderRadius:"var(--rf)",padding:"6px 16px",fontSize:".78rem",fontWeight:700}}>✅ Soumission enregistrée</span>
-          <span style={{background:"var(--blue-lt)",color:"var(--blue)",border:"1px solid var(--blue-md)",borderRadius:"var(--rf)",padding:"6px 16px",fontSize:".78rem",fontWeight:700}}>📧 Email de confirmation envoyé</span>
-          <span style={{background:"var(--yellow-lt)",color:"#92400e",border:"1px solid var(--yellow-md)",borderRadius:"var(--rf)",padding:"6px 16px",fontSize:".78rem",fontWeight:700}}>⏳ Vérification sous 48h</span>
+          <span className="puce-demo" style={{fontSize:".78rem",padding:"6px 16px"}}>Démo — rien n’a été transmis</span>
         </div>
         <div style={{display:"flex",gap:"1rem",justifyContent:"center",flexWrap:"wrap"}}>
           <button className="cta-btn" onClick={()=>{setSubmitted(false);setStep(1);setForm({titre:"",domaine:"",niveau:"",duree:"",prix:"",tags:[],description:"",objectifs:"",prerequis:"",competences:"",videoUrl:"",videoPlatform:"youtube",pdfName:"",coverName:""});}}>
-            + Soumettre un autre tuto
+            Revoir le formulaire
           </button>
           <button className="cta-outline" disabled style={{opacity:.55,cursor:"not-allowed"}} title="La liste de vos soumissions n’existe pas encore">Voir mes soumissions <span className="puce-demo" style={{marginLeft:6}}>Bientôt</span></button>
         </div>
@@ -1472,6 +1484,12 @@ function DepotWizard(){
     <div className="section" style={{paddingTop:0}}>
       <PageBanner tag="📤 Partage de savoir" title="Déposer un tutoriel" sub="Partagez votre expertise avec la communauté. Chaque tuto publié renforce les compétences de la filière électrique." showA11y/>
       <div className="section-inner" style={{paddingTop:"2rem"}}>
+        <div className="bloc-demo" role="note" style={{marginBottom:"1.5rem",display:"flex",gap:12,alignItems:"flex-start"}}>
+          <span className="puce-demo" style={{flexShrink:0}}>Pas encore disponible</span>
+          <span style={{fontSize:".85rem",color:"var(--text2)",lineHeight:1.6}}>
+            Le dépôt de tutoriels est une <strong>démonstration</strong> : vous pouvez parcourir toutes les étapes, mais rien n’est envoyé ni enregistré pour l’instant. Dites-nous par le bouton « Un retour ? » ce que vous aimeriez pouvoir partager.
+          </span>
+        </div>
         <div className="wizard-wrap">
 
           {/* ── Sidebar steps ── */}
@@ -1747,7 +1765,7 @@ function DepotWizard(){
                     Suivant →
                   </button>
                 : <button className="wp-next submit" onClick={()=>setSubmitted(true)} aria-label="Soumettre le tutoriel">
-                    🚀 Soumettre le tuto
+                    Terminer la démonstration
                   </button>
               }
             </div>
@@ -2360,25 +2378,6 @@ export default function App(){
             </div>
           </section>
 
-          {/* PARTENAIRES INSTITUTIONNELS */}
-          <section className="section" style={{paddingTop:0}} aria-labelledby="partners-title">
-            <div className="section-inner">
-              <div className="section-head">
-                <div className="s-chip" aria-hidden="true">Partenaires institutionnels</div>
-                <h2 id="partners-title" className="s-title">Un écosystème national</h2>
-              </div>
-              <div style={{display:"flex",gap:"1.5rem",flexWrap:"wrap",alignItems:"center"}}>
-                {[{id:"ademe",label:"ADEME"},{id:"enedis",label:"Enedis"},{id:"edf",label:"EDF"},{id:"rte",label:"RTE"}].map(({id,label})=>(
-                  <div key={id} style={{background:"white",border:"1.5px solid var(--border)",borderRadius:"var(--r)",padding:"1rem 2rem",display:"flex",alignItems:"center",gap:"12px",boxShadow:"var(--sh)",transition:"all .2s",cursor:"pointer"}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--blue-md)";e.currentTarget.style.boxShadow="var(--sh-md)";}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.boxShadow="var(--sh)";}}>
-                    <Logo id={id} h={32}/>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
           {/* CO2 IMPACT */}
           <section className="section" aria-labelledby="co2-section-title">
             <div className="section-inner">
@@ -2408,8 +2407,8 @@ export default function App(){
       {/* ══════════ FORMATIONS ══════════ */}
       {page==="formations"&&(
         <>
-          <PageBanner tag="Catalogue de formations" title={`${filtered.length} formation${filtered.length>1?"s":""} disponible${filtered.length>1?"s":""}`} sub="Multi-sources, filtrable par fabricant, thème et format. Tous financements éligibles." showA11y/>
-          <div className="section">
+          <PageBanner tag="Catalogue de formations" title={`${filtered.length} formation${filtered.length>1?"s":""} disponible${filtered.length>1?"s":""}`} sub="Filtrez par organisme, thème, format, niveau et région." showA11y/>
+          <div className="section" style={{paddingTop:"1.5rem"}}>
             <div className="section-inner">
               <div className="search-wrap" role="search">
                 <div className="search-row">
@@ -2423,61 +2422,37 @@ export default function App(){
                   <span>⚙️ Filtres{actifs>0?` (${actifs} actif${actifs>1?"s":""})`:""}</span>
                   <span aria-hidden="true">{filtresOuverts?"▲":"▼"}</span>
                 </button>);})()}
+                {/* Cinq listes déroulantes sur une ligne, sans compteurs : la zone de
+                    sélection tenait plus de place que le catalogue lui-même
+                    (retours R-108 et R-114). Une option qui ne renverrait rien avec
+                    les autres filtres reste grisée, pour ne pas mener à une liste vide. */}
                 <div className={`filtres-repliables ${filtresOuverts?"ouverts":""}`}>
-              <div className="src-chips" style={{marginBottom:".75rem"}} role="group" aria-label="Filtrer par source">
-                {SOURCES.map(s=>{
-                  const n=compte("s",s.id);
-                  return (
-                  <button key={s.id} className={`sc ${src===s.id?"active":""}`} onClick={()=>setSrc(s.id)}
-                    aria-pressed={src===s.id} aria-label={`${s.label} — ${n} formation${n>1?"s":""}`}
-                    disabled={n===0&&src!==s.id} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
-                    style={n===0&&src!==s.id?{opacity:.4,cursor:"not-allowed"}:{}}>
-                    {/* Le logo affiche déjà le nom de la marque : le répéter donnait
-                        « Schneider Electric Schneider Electric » (remarque 28). */}
-                    {s.id!=="all"?<Logo id={s.id} h={16}/>:s.label}
-                    <span className="sc-n">{n}</span>
-                  </button>
-                  );
-                })}
-              </div>
-                <div className="frow" role="group" aria-label="Filtrer par thème">
-                  <span className="flabel" id="theme-label">Thème</span>
-                  {THEMES.map(t=>{const n=compte("t",t);return(
-                    <button key={t} className={`fchip ${theme===t?"active":""}`} onClick={()=>setTheme(t)}
-                      aria-pressed={theme===t} aria-labelledby="theme-label"
-                      disabled={n===0&&theme!==t} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
-                      style={n===0&&theme!==t?{opacity:.4,cursor:"not-allowed"}:{}}>{t} <span className="fchip-n">{n}</span></button>);})}
-                </div>
-                <div className="frow" style={{marginTop:".5rem"}} role="group" aria-label="Filtrer par format">
-                  <span className="flabel" id="fmt-label">Format</span>
-                  {FORMATS.map(f=>{const n=compte("f",f);return(
-                    <button key={f} className={`fchip ${fmt===f?"active":""}`} onClick={()=>setFmt(f)}
-                      aria-pressed={fmt===f} aria-labelledby="fmt-label"
-                      disabled={n===0&&fmt!==f} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
-                      style={n===0&&fmt!==f?{opacity:.4,cursor:"not-allowed"}:{}}>{f} <span className="fchip-n">{n}</span></button>);})}
-                </div>
-                <div className="frow" style={{marginTop:".5rem"}} role="group" aria-label="Filtrer par niveau">
-                  <span className="flabel" id="niv-label">Niveau</span>
-                  {FILTRE_NIVEAUX.map(nv=>{const n=compte("n",nv);return(
-                    <button key={nv} className={`fchip ${niveau===nv?"active":""}`} onClick={()=>setNiveau(nv)}
-                      aria-pressed={niveau===nv} aria-labelledby="niv-label"
-                      disabled={n===0&&niveau!==nv} title={n===0?"Aucune formation avec les autres filtres actifs":sensNiveau(nv)||undefined}
-                      style={n===0&&niveau!==nv?{opacity:.4,cursor:"not-allowed"}:{}}>{nv} <span className="fchip-n">{n}</span></button>);})}
-                </div>
-                <div className="frow" style={{marginTop:".5rem"}} role="group" aria-label="Filtrer par région">
-                  <span className="flabel" id="region-label" style={{display:"flex",alignItems:"center",gap:4}}>
-                    <span>📍</span> Région
-                  </span>
-                  {REGIONS.map(r=>{const n=compte("r",r.id);return(
-                    <button key={r.id} className={`fchip ${region===r.id?"active":""}`}
-                      onClick={()=>setRegion(r.id)} aria-pressed={region===r.id} aria-labelledby="region-label"
-                      disabled={n===0&&region!==r.id} title={n===0?"Aucune formation avec les autres filtres actifs":undefined}
-                      style={region===r.id?{background:"var(--violet)",borderColor:"var(--violet)"}
-                        :n===0?{opacity:.4,cursor:"not-allowed"}:{}}>
-                      {r.ico} {r.label} <span className="fchip-n">{n}</span>
-                    </button>
-                  );})}
-                </div>
+                  <div className="filtres-ligne">
+                    {[
+                      {id:"f-org",lib:"Organisme",val:src,set:setSrc,cle:"s",defaut:"all",
+                        opts:SOURCES.map(o=>({v:o.id,l:o.id==="all"?"Tous les organismes":o.label}))},
+                      {id:"f-theme",lib:"Thème",val:theme,set:setTheme,cle:"t",defaut:"Tous",
+                        opts:THEMES.map(t=>({v:t,l:t==="Tous"?"Tous les thèmes":t}))},
+                      {id:"f-format",lib:"Format",val:fmt,set:setFmt,cle:"f",defaut:"Tous",
+                        opts:FORMATS.map(f=>({v:f,l:f==="Tous"?"Tous les formats":f}))},
+                      {id:"f-niveau",lib:"Niveau",val:niveau,set:setNiveau,cle:"n",defaut:"Tous",
+                        opts:FILTRE_NIVEAUX.map(n=>({v:n,l:n==="Tous"?"Tous les niveaux":`${n} — ${sensNiveau(n)}`}))},
+                      {id:"f-region",lib:"Région",val:region,set:setRegion,cle:"r",defaut:"all",
+                        opts:REGIONS.map(r=>({v:r.id,l:r.label}))},
+                    ].map(f=>(
+                      <div key={f.id} className={`filtre ${f.val!==f.defaut?"actif":""}`}>
+                        <label htmlFor={f.id}>{f.lib}</label>
+                        <select id={f.id} value={f.val} onChange={e=>f.set(e.target.value)}>
+                          {f.opts.map(o=>(
+                            <option key={o.v} value={o.v} disabled={o.v!==f.val&&compte(f.cle,o.v)===0}>{o.l}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                    {(src!=="all"||theme!=="Tous"||fmt!=="Tous"||niveau!=="Tous"||region!=="all")&&(
+                      <button className="filtres-raz" onClick={()=>{setSrc("all");setTheme("Tous");setFmt("Tous");setNiveau("Tous");setRegion("all");}}>✕ Réinitialiser</button>
+                    )}
+                  </div>
                 </div>
                 {region!=="all"&&(
                   <div style={{marginTop:".75rem",padding:".6rem 1rem",background:"#ede9fe",border:"1.5px solid #c4b5fd",borderRadius:"var(--rl)",display:"flex",alignItems:"center",gap:".5rem",fontSize:".8rem",color:"var(--violet)"}}>
@@ -2487,12 +2462,6 @@ export default function App(){
                   </div>
                 )}
               </div>
-              <p className="legende-niveaux">
-                <strong>Niveaux</strong>
-                {Object.entries(NIVEAUX).map(([niv,sens])=>(
-                  <span key={niv}><span className="ln-cle">{niv}</span> {sens}</span>
-                ))}
-              </p>
               {filtered.length===0?(
                 <div style={{textAlign:"center",padding:"4rem",color:"var(--text2)"}} role="alert">
                   <div style={{fontSize:"3rem",marginBottom:"1rem"}} aria-hidden="true">🔍</div>
