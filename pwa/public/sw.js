@@ -13,7 +13,7 @@
 //   • polices, icônes → Cache First
 // ═══════════════════════════════════════════════════════
 
-const CACHE_NAME = "eclaireurs-v2";
+const CACHE_NAME = "eclaireurs-v3";
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_ASSETS = [
