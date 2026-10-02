@@ -402,8 +402,8 @@ function renderField(f){
   const v = getVal(cur, f.k), id = 'f_' + f.k;
   const lab = `${esc(f.l)}${f.req ? ' <span class="req">*</span>' : ''}${f.help ? `<span class="help">${esc(f.help)}</span>` : ''}`;
   switch (f.t){
-    case 'consent': return `<div class="consent"><p><b>À lire à l'électricien :</b> « Les informations que vous nous donnez pendant cet entretien sont enregistrées par l'équipe Les Éclaireurs! uniquement pour analyser les besoins des électriciens pendant la phase de test. Elles ne sont ni vendues ni cédées, sont conservées 12 mois au plus, et vous pouvez à tout moment demander à les consulter, les corriger ou les supprimer. Êtes-vous d'accord ? »</p>
-      <label class="check"><input type="checkbox" id="${id}" data-k="${f.k}" data-t="check" ${v ? 'checked' : ''} ${cur.id ? 'disabled' : ''}> L'électricien a donné son accord oral <span class="req">*</span></label></div>`;
+    case 'consent': return `<div class="consent"><p><b>À lire à l'électricien :</b> « Pendant notre échange, je vais prendre des notes pour ne rien oublier de ce que vous me dites. Elles restent au sein de l'équipe Les Éclaireurs!, servent uniquement à améliorer la plateforme, et vous pouvez me demander de les corriger ou de les supprimer à tout moment. Vous êtes d'accord ? »</p>
+      <label class="check"><input type="checkbox" id="${id}" data-k="${f.k}" data-t="check" ${v ? 'checked' : ''} ${cur.id ? 'disabled' : ''}> L'électricien est d'accord pour la prise de notes <span class="req">*</span></label></div>`;
     case 'text': case 'email': case 'tel': case 'date': case 'number':
       return `<div class="field"><label for="${id}">${lab}</label><input type="${f.t}" id="${id}" data-k="${f.k}" data-t="${f.t}" value="${esc(v ?? '')}" ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.list ? `list="${f.list}"` : ''} ${f.min != null ? `min="${f.min}" max="${f.max}" inputmode="numeric"` : ''}></div>`;
     case 'textarea':
